@@ -4,7 +4,7 @@ A wideband CW skimmer addon for [UberSDR](https://ubersdr.org) receivers. It
 takes one wide IQ stream per band straight from the receiver, finds every CW
 signal in them and reads them all at once, then spots them as CW Skimmer
 Server does: on a DX-cluster telnet port, and optionally to the Reverse
-Beacon Network as RBN Aggregator does. A live web page shows it at work.
+Beacon Network as RBN Aggregator does (on by default). A live web page shows it at work.
 
 This repository holds only what an install needs: the installer, the
 `docker-compose.yml` and the helper scripts. The program comes as the Docker
@@ -61,7 +61,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `NAME`, `QTH`, `LOCATOR` | the receiver's | the station, for the telnet sign-on and RBN |
 | `VALIDATION` | `normal` | `relaxed`, `normal` or `strict` |
 | `REGION` | `1` | IARU region, for the CW sub-bands |
-| `RBN` | `false` | `true` reports spots to the Reverse Beacon Network |
+| `RBN` | `true` | report spots to the Reverse Beacon Network (as RBN Aggregator does); `false` turns it off |
 | `RBN_DRY_RUN` | `false` | sign on to RBN and judge spots, but upload none |
 | `WEB_PORT` | `6101` | the web page |
 | `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format; `0` turns it off |

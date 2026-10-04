@@ -11,8 +11,10 @@ services:
       # the beacon frequencies), less what the receiver cannot tune; one IQ
       # stream each, so mind the receiver's session limit. Or e.g. "40,30,20".
       BANDS: "all"
-      # Report spots to the Reverse Beacon Network (as RBN Aggregator does)
-      RBN: "false"
+      # Report spots to the Reverse Beacon Network (as RBN Aggregator does),
+      # as CALLSIGN-# with the receiver's call, name, QTH and locator by
+      # default; "false" turns it off
+      RBN: "true"
       # Uncomment and set as needed (empty = the default):
       # UBERSDR_PASSWORD: ""  # the receiver's password, if it has one
       # IQ_MODE: "iq96"       # iq48, iq96, iq192 or iq384
