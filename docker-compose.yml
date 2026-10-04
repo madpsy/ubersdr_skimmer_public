@@ -15,11 +15,13 @@ services:
       # as CALLSIGN-# with the receiver's call, name, QTH and locator by
       # default; "false" turns it off
       RBN: "true"
+      # Your callsign: spots go out (to telnet and RBN) as CALLSIGN-#.
+      # Empty: the receiver's CW skimmer callsign, else its callsign.
+      CALLSIGN: ""
       # Uncomment and set as needed (empty = the default):
       # UBERSDR_PASSWORD: ""  # the receiver's password, if it has one
       # IQ_MODE: "iq96"       # iq48, iq96, iq192 or iq384
       # MIN_MARGIN: "15"      # reduced-depth IQ, dB under the noise; 0 = lossless
-      # CALLSIGN: ""          # default: the receiver's cw_skimmer_callsign, else its callsign
       # NAME: ""              # operator, for the telnet sign-on and RBN (default: the receiver's)
       # QTH: ""               # location (default: the receiver's)
       # LOCATOR: ""           # 6-character locator (default: the receiver's)
