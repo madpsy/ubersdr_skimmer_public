@@ -4,7 +4,8 @@ A wideband CW skimmer addon for [UberSDR](https://ubersdr.org) receivers. It
 takes one wide IQ stream per band straight from the receiver, finds every CW
 signal in them and reads them all at once, then spots them as CW Skimmer
 Server does: on a DX-cluster telnet port, and optionally to the Reverse
-Beacon Network as RBN Aggregator does (on by default). A live web page shows it at work.
+Beacon Network as RBN Aggregator does (on by default) and to PSK Reporter
+(off by default). A live web page shows it at work.
 
 This repository holds only what an install needs: the installer, the
 `docker-compose.yml` and the helper scripts. The program comes as the Docker
@@ -66,6 +67,8 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `WEB_PORT` | `6101` | the web page |
 | `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format; `0` turns it off |
 | `AGG_TELNET_PORT` | | with `RBN`, the reporter's local-user telnet port (as Aggregator's 7550) |
+| `PSKREPORTER` | `false` | `true` reports spots to [PSK Reporter](https://pskreporter.info), as UberSDR reports its CW skimmer's: as `CALLSIGN` at `LOCATOR`, each call at most once a band in 2 minutes. Not in the compose file: add it under `environment:`. If UberSDR already uploads its CW spots to PSKReporter (with `cwskimmer.yaml` pointing here), leave this off, or each spot goes twice |
+| `PSKREPORTER_ANTENNA` | | the antenna, as PSK Reporter shows it |
 | `NOISE_FILTER` | `true` | keep tracks off SSB, data, noise and swept carriers in the CW segments (shown tinted on the web page); `false` tracks them as any signal |
 | `EXTRA_ARGS` | | any other option; `docker exec skimmer ubersdr-skimmer --help` lists them |
 
@@ -120,6 +123,9 @@ ubersdr-skimmer-windows-x86_64.exe --driver C:\Radios\HermesIntf.dll --mode iq19
 - `--mode` is `iq48`, `iq96` (default) or `iq192`.
 - Give `--call`, and for RBN `--name`, `--qth` and `--locator`: there is no
   receiver to take them from.
+- `--pskreporter` reports the spots to PSK Reporter as well (off by
+  default; it needs `--call` and `--locator`), and `--pskreporter-antenna`
+  names the antenna.
 - Spots go to telnet port 7300, and the web page is at
   `http://localhost:9101/`.
 
