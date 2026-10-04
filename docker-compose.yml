@@ -1,0 +1,51 @@
+services:
+  ubersdr_skimmer:
+    container_name: skimmer
+    image: madpsy/ubersdr_skimmer:latest
+    restart: unless-stopped
+    cpu_shares: 512
+    environment:
+      # UberSDR base URL
+      UBERSDR_URL: "http://ubersdr:8080"
+      # Bands to skim: "all" is what CW Skimmer Server skims (160-6 m, 60 m,
+      # the beacon frequencies), less what the receiver cannot tune; one IQ
+      # stream each, so mind the receiver's session limit. Or e.g. "40,30,20".
+      BANDS: "all"
+      # Report spots to the Reverse Beacon Network (as RBN Aggregator does)
+      RBN: "false"
+      # Uncomment and set as needed (empty = the default):
+      # UBERSDR_PASSWORD: ""  # the receiver's password, if it has one
+      # IQ_MODE: "iq96"       # iq48, iq96, iq192 or iq384
+      # MIN_MARGIN: "15"      # reduced-depth IQ, dB under the noise; 0 = lossless
+      # CALLSIGN: ""          # default: the receiver's cw_skimmer_callsign, else its callsign
+      # NAME: ""              # operator, for the telnet sign-on and RBN (default: the receiver's)
+      # QTH: ""               # location (default: the receiver's)
+      # LOCATOR: ""           # 6-character locator (default: the receiver's)
+      # VALIDATION: "normal"  # relaxed, normal or strict
+      # REGION: "1"           # IARU region for the CW sub-bands
+      # RBN_DRY_RUN: "false"  # sign on to RBN and judge spots, but upload none
+      # WEB_PORT: "6101"      # the web page, proxied by UberSDR at /addon/skimmer/
+      # TELNET_PORT: "7300"   # DX-cluster telnet (CW Skimmer Server's format); 0 = off
+      # AGG_TELNET_PORT: ""   # with RBN, the reporter's local-user telnet (e.g. 7550)
+      # EXTRA_ARGS: ""        # anything else (see: docker exec skimmer ubersdr-skimmer --help)
+    volumes:
+      # Fetched cty.dat/MASTER.SCP/RBN lists, FFTW wisdom and RBN state
+      - ./cache:/data/cache
+    # The telnet port is reachable from the other containers as skimmer:7300.
+    # To reach it from outside Docker, uncomment (dxcluster may already
+    # have 7300 on the host; pick another host port if so):
+    # ports:
+    #   - "7300:7300"
+    networks:
+      - sdr-network
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: "127.0.0.1:24224"
+        fluentd-async: "true"
+        tag: "skimmer"
+
+networks:
+  sdr-network:
+    external: true
+    name: ubersdr_sdr-network
