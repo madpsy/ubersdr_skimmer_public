@@ -95,3 +95,74 @@ In `~/ubersdr/skimmer`:
 | `update.sh` | run the installer again: the latest image and scripts (`docker-compose.yml` is kept) |
 
 Logs: `docker logs -f skimmer`.
+
+---
+
+## On Windows, from a radio (CW Skimmer Server drivers and CWSL)
+
+The skimmer also runs on Windows by itself, without UberSDR and without
+Docker, from a radio driven through its CW Skimmer Server driver. It does
+CWSL_Tee's job as well. Download `ubersdr-skimmer-windows-x86_64.exe` from
+[Releases](https://github.com/madpsy/ubersdr_skimmer_public/releases/latest).
+It is one file and needs nothing installed beside it. `--driver` is for
+Windows only.
+
+```
+ubersdr-skimmer-windows-x86_64.exe --driver C:\Radios\HermesIntf.dll --mode iq192 --bands 160,80,40,30,20,17,15,12 --call M9PSY
+```
+
+- `--driver` is the radio's Skimmer Server driver: the DLL you would put in
+  Skimmer Server's directory (`HermesIntf.dll`, `Qs1rIntf.dll`, ...). It is
+  the one a `CWSL_Tee.cfg` names on its first line. Skimmer Server and
+  CWSL_Tee.dll are not needed.
+- Each band of `--bands` takes one of the radio's receivers. The skimmer
+  asks for no more than the radio has; if the bands need more, it says so.
+- `--mode` is `iq48`, `iq96` (default) or `iq192`.
+- Give `--call`, and for RBN `--name`, `--qth` and `--locator`: there is no
+  receiver to take them from.
+- Spots go to telnet port 7300, and the web page is at
+  `http://localhost:9101/`.
+
+**HermesIntf** ([k3it/HermesIntf](https://github.com/k3it/HermesIntf/releases))
+drives OpenHPSDR radios: Hermes, Hermes Lite 2, ANAN, Red Pitaya and others.
+It takes the first radio that answers. To pin it to one radio, rename the DLL
+with the radio's IP address or the last two bytes of its MAC address:
+`HermesIntf_192.168.1.50.dll` or `HermesIntf_693c.dll`.
+
+**Several radios.** Give `--driver` once per radio. The `--bands`, `--freq`,
+`--mode` and `--cwsl-` options given after a `--driver` are that radio's:
+
+```
+ubersdr-skimmer-windows-x86_64.exe --call M9PSY ^
+  --driver C:\Radios\HermesIntf_192.168.1.50.dll --mode iq192 --bands 160,80,40,30,20,17,15,12 ^
+  --driver C:\Radios\HermesIntf_192.168.1.51.dll --bands 10
+```
+
+### Sharing the IQ with CWSL tools
+
+As [CWSL_Tee](https://github.com/HrochL/CWSL) does, every receiver's IQ is put
+in shared memory. CWSL_File, CWSL_Wave, Extio_CWSL (for HDSDR and Winrad),
+CWSL_Net, CWSL_USBWave and a Skimmer Server running CWSL_Tee can read it,
+alongside the skimmer, as they would from Skimmer Server.
+
+| | |
+|---|---|
+| Names | the first radio's receivers are `CWSL0Band`, `CWSL1Band`, ...; the second radio's `CWSL0Band2`, ... (the names `CWSL_Tee2.dll`, `CWSL_File2.exe` and `Extio_CWSL2.dll` use); the third's `CWSL0Band3`, ... |
+| `--cwsl-suffix S` | after a `--driver`: that radio's names become `CWSL0BandS`, ... |
+| `--cwsl-blocks N` | blocks of 1/93.75 s each memory holds (default 64, as `CWSL_Tee.cfg`'s second line); `0` shares nothing |
+| Receivers | as many as the radio has, up to 32 (the most CWSL's tools look for), not CWSL_Tee's 8 |
+
+To record a band with CWSL_File while the skimmer runs, for example:
+`CWSL_File 2` records the third receiver (`CWSL2Band`), and `CWSL_File 7030`
+records the receiver whose band holds 7030 kHz. For the second radio, use
+`CWSL_File2.exe`.
+
+The shared memory exists while the skimmer runs, and is gone when it stops.
+If a Skimmer Server with CWSL_Tee already has a radio under the same names,
+the skimmer stops and says so; pick another `--cwsl-suffix`.
+
+Skimmer Server's drivers are 32-bit, so the skimmer starts a small 32-bit
+helper, `sdr-host`, for each radio. It writes the helper to
+`%LOCALAPPDATA%\ubersdr-skimmer\` and runs the driver in it. If Windows
+Firewall asks about a network driver such as HermesIntf, the program it
+names is `sdr-host-x86-....exe`.
