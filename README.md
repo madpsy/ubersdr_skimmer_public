@@ -66,6 +66,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `WEB_PORT` | `6101` | the web page |
 | `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format; `0` turns it off |
 | `AGG_TELNET_PORT` | | with `RBN`, the reporter's local-user telnet port (as Aggregator's 7550) |
+| `NOISE_FILTER` | `true` | keep tracks off SSB, data, noise and swept carriers in the CW segments (shown tinted on the web page); `false` tracks them as any signal |
 | `EXTRA_ARGS` | | any other option; `docker exec skimmer ubersdr-skimmer --help` lists them |
 
 Each band is its own session on the receiver. UberSDR's usual configuration
