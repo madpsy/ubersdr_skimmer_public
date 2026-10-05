@@ -31,7 +31,9 @@ services:
       # WEB_PORT: "6101"      # the web page, proxied by UberSDR at /addon/skimmer/
       # TELNET_PORT: "7300"   # DX-cluster telnet (CW Skimmer Server's format); 0 = off
       # AGG_TELNET_PORT: ""   # with RBN, the reporter's local-user telnet (e.g. 7550)
+      # FREQ_CALIBRATION: "1"  # multiply frequencies by SM7IUN's correction factor (web page, Analytics tab)
       # NOISE_FILTER: "true"  # "false": track signals in SSB, data and noise in the CW segments too
+      # STATIC_FILTER: "full"  # static crashes: "full" start and keep no track, "starts" start none, "off" track as any signal
       # EXTRA_ARGS: ""        # anything else (see: docker exec skimmer ubersdr-skimmer --help)
     volumes:
       # Fetched cty.dat/MASTER.SCP/RBN lists, FFTW wisdom and RBN state

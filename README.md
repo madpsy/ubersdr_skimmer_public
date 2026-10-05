@@ -69,7 +69,9 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `AGG_TELNET_PORT` | | with `RBN`, the reporter's local-user telnet port (as Aggregator's 7550) |
 | `PSKREPORTER` | `false` | `true` reports spots to [PSK Reporter](https://pskreporter.info), as UberSDR reports its CW skimmer's: as `CALLSIGN` at `LOCATOR`, each call at most once a band in 2 minutes. Not in the compose file: add it under `environment:`. If UberSDR already uploads its CW spots to PSKReporter (with `cwskimmer.yaml` pointing here), leave this off, or each spot goes twice |
 | `PSKREPORTER_ANTENNA` | | the antenna, as PSK Reporter shows it |
+| `FREQ_CALIBRATION` | `1` | every frequency is multiplied by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's Analytics tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it |
 | `NOISE_FILTER` | `true` | keep tracks off SSB, data, noise and swept carriers in the CW segments (shown tinted on the web page); `false` tracks them as any signal |
+| `STATIC_FILTER` | `full` | static crashes (lightning far off, lifting the whole band for a few ms several times a second): `full` starts no track, and keeps none running, on a signal over the threshold only because a crash lifted the band; `starts` starts none so but lets crashes keep running tracks; `off` tracks them as any signal. The web page shows how often they come (the noise floor drawn bolder, and the stream's "static" figure) |
 | `EXTRA_ARGS` | | any other option; `docker exec skimmer ubersdr-skimmer --help` lists them |
 
 Each band is its own session on the receiver. UberSDR's usual configuration
