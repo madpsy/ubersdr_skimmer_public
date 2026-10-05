@@ -112,9 +112,17 @@ it. Download it from
 [Releases](https://github.com/madpsy/ubersdr_skimmer_public/releases/latest):
 `ubersdr-skimmer-linux-x86_64`, `ubersdr-skimmer-linux-aarch64` (Raspberry Pi
 and other 64-bit ARM) or `ubersdr-skimmer-windows-x86_64.exe`. It takes its IQ
-from exactly one kind of source: `--url`, `--hpsdr`, `--driver` or `--input`.
-Live, spots go to telnet port 7300 and the web page is at
+from exactly one kind of source: `--url`, `--hpsdr`, `--ka9q`, `--driver` or
+`--input`. Live, spots go to telnet port 7300 and the web page is at
 `http://localhost:9101/`; `--help` lists every option.
+
+| Source | Option | Runs on | Radios | Streams | Example |
+|---|---|---|---|---|---|
+| UberSDR receiver | `--url URL` | Linux, Windows | any UberSDR receiver you can reach | one session per band, iq48–iq384 | `--url http://sdr.example.com:8080 --bands all` |
+| HPSDR radio | `--hpsdr IP` | Linux, Windows | Hermes Lite 2, Hermes, Angelia, Orion, ANAN, Red Pitaya, UberSDR's HPSDR bridge | one of the radio's receivers per band, iq48–iq384 | `--hpsdr 192.168.1.50 --mode iq192 --bands 80,40,30,20` |
+| ka9q-radio | `--ka9q STATUS` | Linux (radiod's host, or the same LAN) | whatever radiod's front end is: RX888, Airspy, Airspy HF+, SDRplay, HackRF, RTL-SDR, FUNcube... | one radiod channel per band, iq48–iq384, made beside its others (wsprdaemon's...) | `--ka9q hf-status.local --bands all` |
+| Skimmer Server driver | `--driver DLL` | Windows | any radio CW Skimmer Server drives (QS1R, HermesIntf radios, ...) | one of the radio's receivers per band, iq48–iq192; shared with CWSL tools | `--driver C:\Radios\Qs1rIntf.dll --bands 40,30,20` |
+| Recording | `--input FILE` | Linux, Windows | raw IQ as `--record` writes it | one stream | `--input 40m.cf32 --rate 96000 --freq 7020000` |
 
 Away from a receiver there is nowhere to take the station from. Give `--call`,
 and for RBN (`--rbn`) also `--name`, `--qth` and `--locator`. `--pskreporter`
@@ -167,6 +175,44 @@ ubersdr-skimmer-linux-x86_64 --call M9PSY \
   --hpsdr 192.168.1.50 --mode iq192 --bands 160,80,40,30 \
   --hpsdr 192.168.1.51 --mode iq192 --bands 20,17,15,12
 ```
+
+### From ka9q-radio (`--ka9q`, Linux)
+
+A [ka9q-radio](https://github.com/ka9q/ka9q-radio) `radiod` already running,
+on a standalone install: an RX888 or any other front end radiod drives. The
+skimmer makes its own IQ channels on it, one per band, beside the channels
+it has. Nothing in radiod's config changes and radiod is not restarted, so it
+runs alongside wsprdaemon (or anything else using that radiod) without
+disturbing it.
+
+```
+ubersdr-skimmer-linux-x86_64 --ka9q hf-status.local --bands all --call M9PSY
+ubersdr-skimmer-linux-aarch64 --ka9q hf-status.local --bands 80,40,30,20 --mode iq192 --call M9PSY
+ubersdr-skimmer-linux-x86_64 --ka9q hf-status.local --bands 40,20 --ka9q-gain 10 --call M9PSY
+```
+
+- `STATUS` is radiod's status group, as `status =` in its config's `[global]`
+  section names it (wsprdaemon's is `hf-status.local`), or the group's
+  address. avahi is not needed: the name is turned into the address as
+  radiod itself does it.
+- radiod is asked what its front end covers, and bands beyond it are left
+  out: an RX888 sampling at 64.8 MHz reaches 30 MHz, so `--bands all` there
+  skims 160–10 m.
+- `--mode` is `iq48`, `iq96` (default), `iq192` or `iq384`.
+- The level: radiod's AGC by default, as its `iq` preset runs it.
+  `--ka9q-agc off` or `--ka9q-gain DB` fixes the gain instead;
+  `--ka9q-agc-hang S`, `--ka9q-agc-recovery DB`, `--ka9q-headroom DB` and
+  `--ka9q-agc-threshold DB` tune the AGC.
+- Samples come as 32-bit floats; `--ka9q-encoding s16` halves the traffic.
+- The IQ goes to a multicast group of the skimmer's own, so none of radiod's
+  other listeners receive it (`--ka9q-data NAME` names the group).
+- radiod is taken to be on the same host, whatever its `ttl` (wsprdaemon sets
+  `ttl = 0`, which keeps radiod's traffic on the loopback interface). For a
+  radiod on another host, with its `ttl` above 0, give the interface it is
+  reached on: `--ka9q-iface eth0`.
+- The channels are closed when the skimmer stops. If it dies instead, radiod
+  removes them itself within 10 s. If the IQ stops, the channels are made
+  again.
 
 ### From a radio's CW Skimmer Server driver (`--driver`, Windows)
 
