@@ -103,17 +103,76 @@ Logs: `docker logs -f skimmer`.
 
 ---
 
-## On Windows, from a radio (CW Skimmer Server drivers and CWSL)
+## Running the program yourself: every source of IQ
 
-The skimmer also runs on Windows by itself, without UberSDR and without
-Docker, from a radio driven through its CW Skimmer Server driver. It does
-CWSL_Tee's job as well. Download `ubersdr-skimmer-windows-x86_64.exe` from
-[Releases](https://github.com/madpsy/ubersdr_skimmer_public/releases/latest).
-It is one file and needs nothing installed beside it. `--driver` is for
-Windows only.
+Without Docker, the skimmer is one file that needs nothing installed beside
+it. Download it from
+[Releases](https://github.com/madpsy/ubersdr_skimmer_public/releases/latest):
+`ubersdr-skimmer-linux-x86_64`, `ubersdr-skimmer-linux-aarch64` (Raspberry Pi
+and other 64-bit ARM) or `ubersdr-skimmer-windows-x86_64.exe`. It takes its IQ
+from exactly one kind of source: `--url`, `--hpsdr`, `--driver` or `--input`.
+Live, spots go to telnet port 7300 and the web page is at
+`http://localhost:9101/`; `--help` lists every option.
+
+Away from a receiver there is nowhere to take the station from. Give `--call`,
+and for RBN (`--rbn`) also `--name`, `--qth` and `--locator`. `--pskreporter`
+reports to PSK Reporter as well (off by default; it needs `--call` and
+`--locator`), and `--pskreporter-antenna` names the antenna.
+
+### From an UberSDR receiver (`--url`)
+
+What the addon does, from any receiver you can reach:
 
 ```
-ubersdr-skimmer-windows-x86_64.exe --driver C:\Radios\HermesIntf.dll --mode iq192 --bands 160,80,40,30,20,17,15,12 --call M9PSY
+ubersdr-skimmer-linux-x86_64 --url http://sdr.example.com:8080 --bands all --call M9PSY
+ubersdr-skimmer-linux-x86_64 --url http://sdr.example.com:8080 --bands 40,30,20 --mode iq192 --password PW
+```
+
+`--mode` is `iq48`, `iq96` (default), `iq192` or `iq384`. Each band is a
+session on the receiver; `--password` takes a password or the bypass password.
+
+### From an HPSDR radio on the network (`--hpsdr`, Linux and Windows)
+
+An openHPSDR radio, spoken to directly at its IP address: Hermes Lite 2,
+Hermes, Angelia, Orion, ANAN, Red Pitaya, or UberSDR's own HPSDR bridge. The
+skimmer drives it as CW Skimmer Server's HermesIntf does, in protocol 1 or 2,
+whichever the radio answers. Skimmer Server, its drivers and Docker are not
+needed.
+
+```
+ubersdr-skimmer-linux-x86_64 --hpsdr 192.168.1.50 --mode iq192 --bands 160,80,40,30,20,17,15,12 --call M9PSY
+ubersdr-skimmer-windows-x86_64.exe --hpsdr 192.168.1.50 --mode iq96 --bands 40,30,20 --call M9PSY
+```
+
+- Each band of `--bands` takes one of the radio's receivers, as many as it
+  says it has (a Hermes Lite 2 has 4, or 10 with the 10-receiver CIC
+  gateware). If the bands need more, it says so.
+- `--mode` is `iq48`, `iq96` (default), `iq192` or `iq384`. A radio that
+  streams another rate is refused, and the message names the mode to use: a
+  Hermes Lite 2 on the 10-receiver CIC gateware streams 192 kHz only, so it
+  needs `--mode iq192`.
+- `--hpsdr-protocol 1` or `2` insists on a protocol. `--hpsdr-att DB` fixes
+  the step attenuator; by default it moves with ADC overloads, as HermesIntf
+  moves it (on a Hermes, ANAN or Angelia, Orion, Orion2 or Saturn).
+- A radio busy with another program is left to it. If the radio goes quiet,
+  it is started again.
+
+Several radios: give `--hpsdr` once per radio. The `--bands`, `--freq` and
+`--mode` options after an `--hpsdr` are that radio's:
+
+```
+ubersdr-skimmer-linux-x86_64 --call M9PSY \
+  --hpsdr 192.168.1.50 --mode iq192 --bands 160,80,40,30 \
+  --hpsdr 192.168.1.51 --mode iq192 --bands 20,17,15,12
+```
+
+### From a radio's CW Skimmer Server driver (`--driver`, Windows)
+
+Any radio CW Skimmer Server drives, through the same driver, with
+CWSL_Tee's job done as well:
+
+```
+ubersdr-skimmer-windows-x86_64.exe --driver C:\Radios\Qs1rIntf.dll --mode iq192 --bands 160,80,40,30,20,17,15,12 --call M9PSY
 ```
 
 - `--driver` is the radio's Skimmer Server driver: the DLL you would put in
@@ -123,19 +182,26 @@ ubersdr-skimmer-windows-x86_64.exe --driver C:\Radios\HermesIntf.dll --mode iq19
 - Each band of `--bands` takes one of the radio's receivers. The skimmer
   asks for no more than the radio has; if the bands need more, it says so.
 - `--mode` is `iq48`, `iq96` (default) or `iq192`.
-- Give `--call`, and for RBN `--name`, `--qth` and `--locator`: there is no
-  receiver to take them from.
-- `--pskreporter` reports the spots to PSK Reporter as well (off by
-  default; it needs `--call` and `--locator`), and `--pskreporter-antenna`
-  names the antenna.
-- Spots go to telnet port 7300, and the web page is at
-  `http://localhost:9101/`.
+
+### From a recording (`--input`)
+
+Raw interleaved IQ, as `--record` writes it (`cf32`) or 16-bit (`--format
+cs16`), with its rate and centre frequency:
+
+```
+ubersdr-skimmer-linux-x86_64 --input 40m.cf32 --rate 96000 --freq 7020000 --call M9PSY
+```
+
+### HermesIntf and several radios through drivers
 
 **HermesIntf** ([k3it/HermesIntf](https://github.com/k3it/HermesIntf/releases))
 drives OpenHPSDR radios: Hermes, Hermes Lite 2, ANAN, Red Pitaya and others.
 It takes the first radio that answers. To pin it to one radio, rename the DLL
 with the radio's IP address or the last two bytes of its MAC address:
-`HermesIntf_192.168.1.50.dll` or `HermesIntf_693c.dll`.
+`HermesIntf_192.168.1.50.dll` or `HermesIntf_693c.dll`. For these radios,
+`--hpsdr IP` does the same without the DLL, on Linux too. Use the DLL only
+where the receivers' IQ must also be shared with CWSL tools, which only
+`--driver` does.
 
 **Several radios.** Give `--driver` once per radio. The `--bands`, `--freq`,
 `--mode` and `--cwsl-` options given after a `--driver` are that radio's:
