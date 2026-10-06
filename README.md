@@ -61,7 +61,6 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `CALLSIGN` | the receiver's | spots go out as `CALLSIGN-#` (default: `cw_skimmer_callsign`, else the receiver's callsign) |
 | `NAME`, `QTH`, `LOCATOR` | the receiver's | the station, for the telnet sign-on and RBN |
 | `VALIDATION` | `normal` | `relaxed`, `normal` or `strict` |
-| `REGION` | `1` | IARU region, for the CW sub-bands |
 | `RBN` | `true` | report spots to the Reverse Beacon Network (as RBN Aggregator does); `false` turns it off. RBN needs the station's locator: without one (the receiver publishes no GPS locator and `LOCATOR` is unset) the reporter does not start, the log says so, and the skimmer runs on without it |
 | `RBN_DRY_RUN` | `false` | sign on to RBN and judge spots, but upload none |
 | `WEB_PORT` | `6101` | the web page |
