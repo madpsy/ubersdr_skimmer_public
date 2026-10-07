@@ -33,6 +33,7 @@ services:
       # FREQ_CALIBRATION: "1"  # multiply frequencies by SM7IUN's correction factor (web page, Analytics tab)
       # NOISE_FILTER: "true"  # "false": track signals in SSB, data and noise in the CW segments too
       # RTTY_FILTER: "true"   # "false": track signals on RTTY too
+      # JTTY: "true"          # "false": decode no JTTY (the web page's JTTY tab)
       # STATIC_FILTER: "full"  # static crashes: "full" start and keep no track, "starts" start none, "off" track as any signal
       # QRZ_USER: ""          # QRZ.com login (XML Data subscription), only if UberSDR's own lookups
       # QRZ_PASSWORD: ""      #   are off: calls are looked up through UberSDR's lookup_services
