@@ -15,6 +15,16 @@ services:
       # as CALLSIGN-# with the receiver's call, name, QTH and locator by
       # default; "false" turns it off
       RBN: "true"
+      # Report spots (CW, RTTY, JTTY) to PSK Reporter as CALLSIGN at LOCATOR.
+      # Leave "false" if UberSDR already uploads its CW skimmer's spots to
+      # PSKReporter with cwskimmer.yaml pointing here, or each goes twice
+      PSKREPORTER: "false"
+      # Decode RTTY (the web page's RTTY tab) and spot its calls: telnet
+      # port 7301, RBN and PSK Reporter as RTTY; "false" turns it off
+      RTTY: "true"
+      # Decode WSJT-X 3.2's JTTY on its dials (the web page's JTTY tab);
+      # "false" turns it off
+      JTTY: "true"
       # Your callsign: spots go out (to telnet and RBN) as CALLSIGN-#.
       # Empty: the receiver's CW skimmer callsign, else its callsign.
       CALLSIGN: ""
@@ -33,7 +43,7 @@ services:
       # FREQ_CALIBRATION: "1"  # multiply frequencies by SM7IUN's correction factor (web page, Analytics tab)
       # NOISE_FILTER: "true"  # "false": track signals in SSB, data and noise in the CW segments too
       # RTTY_FILTER: "true"   # "false": track signals on RTTY too
-      # JTTY: "true"          # "false": decode no JTTY (the web page's JTTY tab)
+      # PSKREPORTER_ANTENNA: ""  # the antenna, as PSK Reporter shows it
       # STATIC_FILTER: "full"  # static crashes: "full" start and keep no track, "starts" start none, "off" track as any signal
       # QRZ_USER: ""          # QRZ.com login (XML Data subscription), only if UberSDR's own lookups
       # QRZ_PASSWORD: ""      #   are off: calls are looked up through UberSDR's lookup_services
