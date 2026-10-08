@@ -17,7 +17,7 @@ It reads more than CW:
   and 28.090 MHz) wherever a band's stream covers one, a port of WSJT-X's
   own receiver. Each signal's messages show live on the web page's JTTY tab,
   with the calls heard and who they worked; the calls go to PSK Reporter when
-  that is on (not to telnet or RBN). `JTTY: "false"` turns it off.
+  that is on and to telnet port 7302 (not to RBN). `JTTY: "false"` turns it off.
 
 This repository holds only what an install needs: the installer, the
 `docker-compose.yml` and the helper scripts. The program comes as the Docker
@@ -76,7 +76,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `RBN` | `true` | report spots to the Reverse Beacon Network (as RBN Aggregator does); `false` turns it off. RBN needs the station's locator: without one (the receiver publishes no GPS locator and `LOCATOR` is unset) the reporter does not start, the log says so, and the skimmer runs on without it |
 | `RBN_DRY_RUN` | `false` | sign on to RBN and judge spots, but upload none |
 | `WEB_PORT` | `6101` | the web page |
-| `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format, and RTTY's spots on the next port (7301) in RTTY Skimmer Server's; `0` turns both off |
+| `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format, RTTY's spots on the next port (7301) in RTTY Skimmer Server's, JTTY's on 7302; `0` turns them all off |
 | `AGG_TELNET_PORT` | | with `RBN`, the reporter's local-user telnet port (as Aggregator's 7550) |
 | `PSKREPORTER` | `false` | `true` reports spots to [PSK Reporter](https://pskreporter.info), as UberSDR reports its CW skimmer's: as `CALLSIGN` at `LOCATOR`, each call at most once a band in 2 minutes. JTTY's calls go too, as JTTY. If UberSDR already uploads its CW spots to PSKReporter (with `cwskimmer.yaml` pointing here), leave this off, or each spot goes twice |
 | `PSKREPORTER_ANTENNA` | | the antenna, as PSK Reporter shows it |
@@ -87,7 +87,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `RTTY_FILTER` | `true` | find RTTY (two-tone FSK at the usual shifts) anywhere in the band but the digital modes' windows and keep tracks off it and its sidebands, which CW decoders otherwise read callsigns out of (shown tinted on the web page, with its shift). `false` tracks it as any signal, and decodes no RTTY |
 | `RTTY` | `true` | decode the RTTY found (45.45 baud, 170 Hz; the web page's RTTY tab) and spot its calls by CW's rules: on telnet port 7301, to RBN as RTTY and, with `PSKREPORTER`, to PSK Reporter as RTTY. `false` decodes and spots none; the filter still keeps CW tracks off it |
 | `MAX_RTTY` | `100` | RTTY signals each band decodes at once, shared by its streams (10 m has several); past it a new one goes undecoded (still kept clear of CW tracks), the log says so and the web page's RTTY bar shows it full |
-| `JTTY` | `true` | decode WSJT-X 3.2's JTTY on its dials (7.090, 14.090, 21.090 and 28.090 MHz) wherever a stream covers one, shown live on the web page's JTTY tab; streams take a dial in where that costs no more of them. Its calls go only to PSK Reporter (with `PSKREPORTER`), not to telnet or RBN. `false` decodes none |
+| `JTTY` | `true` | decode WSJT-X 3.2's JTTY on its dials (7.090, 14.090, 21.090 and 28.090 MHz) wherever a stream covers one, shown live on the web page's JTTY tab; streams take a dial in where that costs no more of them. Its calls go to telnet port 7302 and PSK Reporter (with `PSKREPORTER`), never to RBN. `false` decodes none |
 | `STATIC_FILTER` | `full` | static crashes (lightning far off, lifting the whole band for a few ms several times a second): `full` starts no track, and keeps none running, on a signal over the threshold only because a crash lifted the band; `starts` starts none so but lets crashes keep running tracks; `off` tracks them as any signal. The web page shows how often they come (the noise floor drawn bolder, and the stream's "static" figure) |
 | `EXTRA_ARGS` | | any other option; `docker exec skimmer ubersdr-skimmer --help` lists them |
 
@@ -105,6 +105,7 @@ the RBN reporter's state are kept in `~/ubersdr/skimmer/cache`.
 | 6101 | the web page; UberSDR proxies it at `/addon/skimmer/` |
 | 7300 | DX-cluster telnet, `skimmer:7300` on the Docker network. Not published on the host; uncomment `ports:` in the compose file to publish it (the dxcluster addon may already use 7300 there) |
 | 7301 | RTTY's spots, as RTTY Skimmer Server's telnet, `skimmer:7301`. Not published either |
+| 7302 | JTTY's spots, in the same lines, `skimmer:7302`. Not published either |
 
 ## Helper scripts
 
@@ -135,7 +136,7 @@ from exactly one kind of source: `--url`, `--hpsdr`, `--ka9q`, `--driver` or
 | Source | Option | Runs on | Radios | Streams | Example |
 |---|---|---|---|---|---|
 | UberSDR receiver | `--url URL` | Linux, Windows | any UberSDR receiver you can reach | one session per band, iq48–iq384 | `--url http://sdr.example.com:8080 --bands all` |
-| HPSDR radio | `--hpsdr IP` | Linux, Windows | Hermes Lite 2, Hermes, Angelia, Orion, ANAN, Red Pitaya, UberSDR's HPSDR bridge | one of the radio's receivers per band, iq48–iq384 | `--hpsdr 192.168.1.50 --mode iq192 --bands 80,40,30,20` |
+| HPSDR radio | `--hpsdr IP` | Linux, Windows | Hermes Lite 2, Hermes, Angelia, Orion, ANAN, Red Pitaya, UberSDR's HPSDR bridge | one of the radio's receivers per band, iq48–iq384; on Windows, shared with CWSL tools with `--cwsl` | `--hpsdr 192.168.1.50 --mode iq192 --bands 80,40,30,20` |
 | ka9q-radio | `--ka9q STATUS` | Linux (radiod's host, or the same LAN) | whatever radiod's front end is: RX888, Airspy, Airspy HF+, SDRplay, HackRF, RTL-SDR, FUNcube... | one radiod channel per band, iq48–iq384, made beside its others (wsprdaemon's...) | `--ka9q hf-status.local --bands all` |
 | Skimmer Server driver | `--driver DLL` | Windows | any radio CW Skimmer Server drives (QS1R, HermesIntf radios, ...) | one of the radio's receivers per band, iq48–iq192; shared with CWSL tools | `--driver C:\Radios\Qs1rIntf.dll --bands 40,30,20` |
 | Recording | `--input FILE` | Linux, Windows | raw IQ as `--record` writes it | one stream | `--input 40m.cf32 --rate 96000 --freq 7020000` |
@@ -182,6 +183,25 @@ ubersdr-skimmer-windows-x86_64.exe --hpsdr 192.168.1.50 --mode iq96 --bands 40,3
   moves it (on a Hermes, ANAN or Angelia, Orion, Orion2 or Saturn).
 - A radio busy with another program is left to it. If the radio goes quiet,
   it is started again.
+- On Windows, `--cwsl` after an `--hpsdr` also shares that radio's receivers
+  with CWSL tools (CWSL_DIGI, CWSL_File, Extio_CWSL, a Skimmer Server running
+  CWSL_Tee...), as CWSL_Tee beside HermesIntf would: see
+  [Sharing the IQ with CWSL tools](#sharing-the-iq-with-cwsl-tools). The
+  radio serves one program, so this is how the others get its IQ too.
+  `iq48`, `iq96` or `iq192` only.
+
+```
+ubersdr-skimmer-windows-x86_64.exe --hpsdr 192.168.1.50 --mode iq192 --bands all --cwsl --call M9PSY
+```
+
+- A receiver to spare (one more than the bands take) becomes the web page's
+  **Radio tab**: a WebSDR of the radio, its spectrum and waterfall for
+  everyone with the tab open, tuned and heard by one listener at a time (CW,
+  USB, LSB, AM, synchronous AM, FM; Opus audio). `--radio-password PW`
+  keeps tuning to those who know it; `--no-radio` leaves the receiver
+  unused. Each `--hpsdr` radio with a receiver to spare has its own tab
+  ("Radio 1", "Radio 2"), independent of the others; either option before
+  any `--hpsdr` is every radio's, after one that radio's.
 
 Several radios: give `--hpsdr` once per radio. The `--bands`, `--freq` and
 `--mode` options after an `--hpsdr` are that radio's:
@@ -263,9 +283,9 @@ drives OpenHPSDR radios: Hermes, Hermes Lite 2, ANAN, Red Pitaya and others.
 It takes the first radio that answers. To pin it to one radio, rename the DLL
 with the radio's IP address or the last two bytes of its MAC address:
 `HermesIntf_192.168.1.50.dll` or `HermesIntf_693c.dll`. For these radios,
-`--hpsdr IP` does the same without the DLL, on Linux too. Use the DLL only
-where the receivers' IQ must also be shared with CWSL tools, which only
-`--driver` does.
+`--hpsdr IP` does the same without the DLL, on Linux too, and on Windows
+`--hpsdr IP --cwsl` shares the receivers' IQ with CWSL tools as `--driver`
+does.
 
 **Several radios.** Give `--driver` once per radio. The `--bands`, `--freq`,
 `--mode` and `--cwsl-` options given after a `--driver` are that radio's:
@@ -279,14 +299,17 @@ ubersdr-skimmer-windows-x86_64.exe --call M9PSY ^
 ### Sharing the IQ with CWSL tools
 
 As [CWSL_Tee](https://github.com/HrochL/CWSL) does, every receiver's IQ is put
-in shared memory. CWSL_File, CWSL_Wave, Extio_CWSL (for HDSDR and Winrad),
-CWSL_Net, CWSL_USBWave and a Skimmer Server running CWSL_Tee can read it,
-alongside the skimmer, as they would from Skimmer Server.
+in shared memory: always with `--driver`, and with `--hpsdr` when `--cwsl` is
+given after it (Windows only). CWSL_File, CWSL_Wave, CWSL_DIGI, Extio_CWSL
+(for HDSDR and Winrad), CWSL_Net, CWSL_USBWave and a Skimmer Server running
+CWSL_Tee can read it, alongside the skimmer, as they would from Skimmer
+Server.
 
 | | |
 |---|---|
 | Names | the first radio's receivers are `CWSL0Band`, `CWSL1Band`, ...; the second radio's `CWSL0Band2`, ... (the names `CWSL_Tee2.dll`, `CWSL_File2.exe` and `Extio_CWSL2.dll` use); the third's `CWSL0Band3`, ... |
-| `--cwsl-suffix S` | after a `--driver`: that radio's names become `CWSL0BandS`, ... |
+| `--cwsl` | after an `--hpsdr`: share that radio's IQ (off by default; `iq48`, `iq96` or `iq192`). `--cwsl-blocks` or `--cwsl-suffix` after an `--hpsdr` turn it on too |
+| `--cwsl-suffix S` | after a `--driver` or `--hpsdr`: that radio's names become `CWSL0BandS`, ... |
 | `--cwsl-blocks N` | blocks of 1/93.75 s each memory holds (default 64, as `CWSL_Tee.cfg`'s second line); `0` shares nothing |
 | Receivers | as many as the radio has, up to 32 (the most CWSL's tools look for), not CWSL_Tee's 8 |
 

@@ -22,8 +22,8 @@ services:
       # Decode RTTY (the web page's RTTY tab) and spot its calls: telnet
       # port 7301, RBN and PSK Reporter as RTTY; "false" turns it off
       RTTY: "true"
-      # Decode WSJT-X 3.2's JTTY on its dials (the web page's JTTY tab);
-      # "false" turns it off
+      # Decode WSJT-X 3.2's JTTY on its dials (the web page's JTTY tab) and
+      # spot its callers: telnet port 7302 and PSK Reporter; "false" turns it off
       JTTY: "true"
       # Your callsign: spots go out (to telnet and RBN) as CALLSIGN-#.
       # Empty: the receiver's CW skimmer callsign, else its callsign.
@@ -38,7 +38,7 @@ services:
       # VALIDATION: "normal"  # relaxed, normal or strict
       # RBN_DRY_RUN: "false"  # sign on to RBN and judge spots, but upload none
       # WEB_PORT: "6101"      # the web page, proxied by UberSDR at /addon/skimmer/
-      # TELNET_PORT: "7300"   # DX-cluster telnet (CW Skimmer Server's format), RTTY's on the next port; 0 = off
+      # TELNET_PORT: "7300"   # DX-cluster telnet (CW Skimmer Server's format), RTTY's on the next port, JTTY's the one after; 0 = off
       # AGG_TELNET_PORT: ""   # with RBN, the reporter's local-user telnet (e.g. 7550)
       # FREQ_CALIBRATION: "1"  # multiply frequencies by SM7IUN's correction factor (web page, Analytics tab)
       # NOISE_FILTER: "true"  # "false": track signals in SSB, data and noise in the CW segments too
@@ -54,7 +54,8 @@ services:
       # Fetched cty.dat/MASTER.SCP/RBN lists, FFTW wisdom and RBN state
       - ./cache:/data/cache
     # The telnet port is reachable from the other containers as skimmer:7300,
-    # RTTY's spots (RTTY Skimmer Server's format) as skimmer:7301.
+    # RTTY's spots (RTTY Skimmer Server's format) as skimmer:7301, JTTY's
+    # as skimmer:7302.
     # To reach it from outside Docker, uncomment (dxcluster may already
     # have 7300 on the host; pick another host port if so):
     # ports:
