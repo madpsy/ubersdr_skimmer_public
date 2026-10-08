@@ -49,6 +49,8 @@ services:
       # QRZ_USER: ""          # QRZ.com login (XML Data subscription), only if UberSDR's own lookups
       # QRZ_PASSWORD: ""      #   are off: calls are looked up through UberSDR's lookup_services
       # QRZ_VALIDATE: "false"  # "true": spot only calls QRZ knows (spots still go when QRZ cannot answer)
+      # RADIO: "true"         # "false": no Radio tab (a 192 kHz session of its own while a page has it open)
+      # RADIO_PASSWORD: ""    # the Radio tab tuned only by a page that gives this (anyone may watch)
       # EXTRA_ARGS: ""        # anything else (see: docker exec skimmer ubersdr-skimmer --help)
     volumes:
       # Fetched cty.dat/MASTER.SCP/RBN lists, FFTW wisdom and RBN state

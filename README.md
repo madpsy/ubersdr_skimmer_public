@@ -19,6 +19,16 @@ It reads more than CW:
   with the calls heard and who they worked; the calls go to PSK Reporter when
   that is on and to telnet port 7302 (not to RBN). `JTTY: "false"` turns it off.
 
+The web page also has a **Radio** tab: a WebSDR of the receiver, on a 192 kHz
+session of its own made only while a page has the tab open. Everyone with it
+open sees its spectrum and waterfall; one listener at a time tunes it and
+hears it (CW, USB, LSB, AM, synchronous AM, FM). Dragging the band moves it
+under the dial without a break in the audio; the squelch, the meter and the
+fixed gain go by the passband's noise, so they read alike on any receiver.
+`RADIO: "false"` turns it off, `RADIO_PASSWORD` keeps tuning to those who know
+it. The Resources tab's Sources section says what the receiver reports of
+itself, and each stream's session.
+
 This repository holds only what an install needs: the installer, the
 `docker-compose.yml` and the helper scripts. The program comes as the Docker
 image [`madpsy/ubersdr_skimmer`](https://hub.docker.com/r/madpsy/ubersdr_skimmer)
@@ -89,7 +99,9 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `MAX_RTTY` | `100` | RTTY signals each band decodes at once, shared by its streams (10 m has several); past it a new one goes undecoded (still kept clear of CW tracks), the log says so and the web page's RTTY bar shows it full |
 | `JTTY` | `true` | decode WSJT-X 3.2's JTTY on its dials (7.090, 14.090, 21.090 and 28.090 MHz) wherever a stream covers one, shown live on the web page's JTTY tab; streams take a dial in where that costs no more of them. Its calls go to telnet port 7302 and PSK Reporter (with `PSKREPORTER`), never to RBN. `false` decodes none |
 | `STATIC_FILTER` | `full` | static crashes (lightning far off, lifting the whole band for a few ms several times a second): `full` starts no track, and keeps none running, on a signal over the threshold only because a crash lifted the band; `starts` starts none so but lets crashes keep running tracks; `off` tracks them as any signal. The web page shows how often they come (the noise floor drawn bolder, and the stream's "static" figure) |
-| `EXTRA_ARGS` | | any other option; `docker exec skimmer ubersdr-skimmer --help` lists them |
+| `RADIO` | `true` | the web page's Radio tab: a 192 kHz session of its own on the receiver, opened while a page has the tab open and closed 10 s after the last leaves. `false` turns it off |
+| `RADIO_PASSWORD` | | the Radio tab tuned only by a page that gives this; anyone may still watch its spectrum. Unset: anyone may tune it |
+| `EXTRA_ARGS` | | any other option (all of them under [Every option](#every-option)) |
 
 Each band is its own session on the receiver. UberSDR's usual configuration
 lets addons on its Docker network past the session limits; if yours does not,
@@ -157,14 +169,29 @@ ubersdr-skimmer-linux-x86_64 --url http://sdr.example.com:8080 --bands 40,30,20 
 
 `--mode` is `iq48`, `iq96` (default), `iq192` or `iq384`. Each band is a
 session on the receiver; `--password` takes a password or the bypass password.
+With `--web`, the Radio tab is a 192 kHz session of its own, opened while a
+page has it open (`--no-radio` for none, `--radio-password PW` to keep tuning
+to those who know it), tuned within the range the receiver advertises.
 
 ### From an HPSDR radio on the network (`--hpsdr`, Linux and Windows)
 
-An openHPSDR radio, spoken to directly at its IP address: Hermes Lite 2,
-Hermes, Angelia, Orion, ANAN, Red Pitaya, or UberSDR's own HPSDR bridge. The
-skimmer drives it as CW Skimmer Server's HermesIntf does, in protocol 1 or 2,
-whichever the radio answers. Skimmer Server, its drivers and Docker are not
-needed.
+An openHPSDR radio, spoken to directly at its IP address (or name, or MAC):
+Hermes Lite 2, Hermes, Angelia, Orion, ANAN, Red Pitaya, or UberSDR's own
+HPSDR bridge. The skimmer drives it as CW Skimmer Server's HermesIntf does, in
+protocol 1 or 2, whichever the radio answers. Skimmer Server, its drivers and
+Docker are not needed.
+
+`--hpsdr-discover` lists the radios on this host's networks and exits:
+
+```
+$ ubersdr-skimmer-linux-x86_64 --hpsdr-discover
+IP               MAC                Device      Board  Protocols  Gateware  Receivers     Up to  Attenuator      State
+192.168.9.67     00:1c:c0:a2:3f:15  HermesLT        6  1          v72.8            10  38.4 MHz  none            idle
+```
+
+A MAC in place of the address is looked up the same way at start
+(`--hpsdr 00:1c:c0:a2:3f:15`), so a radio given an address by DHCP is found
+wherever it is.
 
 ```
 ubersdr-skimmer-linux-x86_64 --hpsdr 192.168.1.50 --mode iq192 --bands 160,80,40,30,20,17,15,12 --call M9PSY
@@ -203,8 +230,10 @@ ubersdr-skimmer-windows-x86_64.exe --hpsdr 192.168.1.50 --mode iq192 --bands all
   ("Radio 1", "Radio 2"), independent of the others; either option before
   any `--hpsdr` is every radio's, after one that radio's.
 
-Several radios: give `--hpsdr` once per radio. The `--bands`, `--freq` and
-`--mode` options after an `--hpsdr` are that radio's:
+Several radios: give `--hpsdr` once per radio, each with bands of its own. The
+`--bands`, `--freq` and `--mode` options after an `--hpsdr` are that radio's.
+One radio given twice (by address and name, or address and MAC) is refused,
+as is a band given to two radios: their receivers would only split it.
 
 ```
 ubersdr-skimmer-linux-x86_64 --call M9PSY \
@@ -249,6 +278,10 @@ ubersdr-skimmer-linux-x86_64 --ka9q hf-status.local --bands 40,20 --ka9q-gain 10
 - The channels are closed when the skimmer stops. If it dies instead, radiod
   removes them itself within 10 s. If the IQ stops, the channels are made
   again.
+- With `--web`, the Radio tab is a 192 kHz channel of its own on radiod,
+  made while a page has the tab open (in a fraction of a second) and tuned
+  within radiod's front end. `--radio-password` and `--no-radio` after a
+  `--ka9q` are its own.
 
 ### From a radio's CW Skimmer Server driver (`--driver`, Windows)
 
@@ -327,3 +360,305 @@ helper, `sdr-host`, for each radio. It writes the helper to
 `%LOCALAPPDATA%\ubersdr-skimmer\` and runs the driver in it. If Windows
 Firewall asks about a network driver such as HermesIntf, the program it
 names is `sdr-host-x86-....exe`.
+
+---
+
+## Every option
+
+<!-- options -->
+Every option, as `--help` gives them (generated from the program's own text by `scripts/readme-options.py`).
+Windows only: `--driver`, `--cwsl-blocks`, `--cwsl-suffix`, `--cwsl`.
+
+```
+usage:
+  ubersdr-skimmer --url URL --freq HZ [--call CALL] [options] live, from an UberSDR receiver
+  ubersdr-skimmer --driver DLL --bands LIST [--driver DLL --bands LIST ...] [options]
+                                                     live, from radios
+  ubersdr-skimmer --hpsdr IP --bands LIST [--hpsdr IP --bands LIST ...] [options]
+                                                     live, from HPSDR radios
+  ubersdr-skimmer --ka9q STATUS --bands LIST [options]
+                                                     live, from ka9q-radio's radiod
+  ubersdr-skimmer --input FILE --rate HZ --freq HZ [options]  offline, from raw IQ
+
+input:
+  --url URL          receiver, e.g. http://44.31.241.13:8080
+  --password PW      receiver password, if it has one
+  --mode MODE        iq48, iq96 (default), iq192, iq384
+  --margin DB        reduced-depth stream, 10-60 dB under the noise (default
+                     15); 0 asks for the lossless stream
+  --insecure         do not verify the receiver's TLS certificate
+  --freq HZ          centre frequency, Hz
+  --bands LIST       live: several bands at once, e.g. 40,30,20, or all:
+                     160-6 m as CW Skimmer Server skims them (with 60 m,
+                     the beacon frequencies and 10 m and 6 m beacon
+                     segments), less what the receiver cannot tune (its
+                     /api/description range). A band wider than one stream
+                     gets two. A number is a centre in kHz: 20,14100 adds a
+                     stream at 14.100. Where two streams overlap, each
+                     skims the half nearer its centre
+  --driver DLL       a radio, through its CW Skimmer Server driver
+                     (Qs1rIntf.dll, HermesIntf.dll, ...: the DLL CWSL_Tee.cfg
+                     names), as Skimmer Server drives it: one receiver per
+                     band of --bands (or the one of --freq), as many as the
+                     radio has. --bands, --freq, --mode and the --cwsl
+                     options after a --driver are that radio's; --mode is
+                     iq48, iq96 or iq192. Repeat it for another radio (no
+                     band on two radios), each in a directory of its own with
+                     its driver's settings, as one Skimmer Server per radio.
+                     As CWSL_Tee, every receiver's IQ is shared for
+                     CWSL_File, CWSL_Wave, Extio_CWSL, a Skimmer Server with
+                     CWSL_Tee, ...: in CWSL0Band, CWSL1Band, ... for the
+                     first radio, CWSL0Band2, ... for the second (as
+                     CWSL_Tee2.dll)
+  --cwsl-blocks N    each receiver's CWSL memory, in blocks of 1/93.75 s
+                     (default 64, as CWSL_Tee.cfg's second line); 0 shares
+                     nothing. Before any radio, every radio's
+  --cwsl-suffix S    the CWSL names' suffix, CWSL0BandS (default: none for
+                     the first radio, its number for the others)
+  --hpsdr-discover   list the HPSDR radios that answer a discovery broadcast
+                     on this host's networks (IP, MAC, device, protocols,
+                     gateware, receivers, state), and exit
+  --hpsdr IP         an HPSDR radio on the network (Hermes Lite 2, Hermes,
+                     Angelia, Orion, ANAN, Red Pitaya, UberSDR's HPSDR
+                     bridge...), by its address, name or MAC (looked up by
+                     broadcast, as --hpsdr-discover), driven as CW Skimmer
+                     Server's HermesIntf drives it: protocol 1 or 2,
+                     whichever it answers (2 if both), one receiver per band
+                     of --bands (or the one of --freq), as many as it says it
+                     has (too few, 10 m is cut, least useful part first; 6 m
+                     is left out). --bands, --freq, --mode (iq48, iq96,
+                     iq192, iq384) and the --hpsdr options after an --hpsdr
+                     are that radio's; repeat it for another radio, with
+                     bands of its own (no band on two radios). Not with
+                     --url, --input or --driver. A receiver to spare (one
+                     more than its bands take), with --web: a Radio tab of
+                     its own on the page, a WebSDR of it for one page at a
+                     time (--radio-password, --no-radio)
+  --hpsdr-protocol N the radio's protocol, 1 or 2 (default: as it answers)
+  --hpsdr-att DB     its step attenuator, 0-31 dB (default: HermesIntf's
+                     AGC on a Hermes, ANAN-10E, Angelia, Orion, Orion2 or
+                     Saturn, 1 dB more for each ADC overload, 1 dB less
+                     after 10 s without one)
+  --cwsl             after an --hpsdr: its IQ shared in CWSL's memories too,
+                     as CWSL_Tee beside HermesIntf shares it (and as a
+                     --driver's always is), for CWSL_DIGI, CWSL_File,
+                     Extio_CWSL, a Skimmer Server with CWSL_Tee, ...; iq48,
+                     iq96 or iq192. --cwsl-blocks or --cwsl-suffix after an
+                     --hpsdr say it too
+  --ka9q STATUS      a ka9q-radio radiod: its status group, as its config's
+                     [global] status = says (wsprdaemon's: hf-status.local),
+                     or that group's address. One IQ channel is made on it
+                     per band of --bands (or the one of --freq), beside the
+                     channels it has, and closed as the skimmer stops (or
+                     10 s after it dies); bands beyond its front end are
+                     left out. On this host by default, whatever radiod's
+                     ttl. --bands, --freq, --mode (iq48, iq96, iq192,
+                     iq384) and the --ka9q options after a --ka9q are that
+                     radiod's; repeat it for another. Not with --url,
+                     --input, --driver or --hpsdr
+  --ka9q-iface IF    the interface radiod is reached on, a name (Linux) or
+                     its address, for a radiod on another host (its ttl
+                     above 0)
+  --ka9q-data NAME   the channels' data group (default: one of this run's
+                     own, skimmer-XXXXXXXX-pcm.local)
+  --ka9q-encoding E  f32 (default) or s16
+  --ka9q-agc on|off  radiod's AGC on each channel (default on, as its iq
+                     preset runs it)
+  --ka9q-gain DB     a fixed gain instead, -100 to 100 dB; the AGC off
+  --ka9q-agc-hang S  the AGC's hang time, s (default: the preset's, 1.1)
+  --ka9q-agc-recovery DB
+                     how fast it brings the gain back, dB/s (default: the
+                     preset's, 20)
+  --ka9q-headroom DB how far under full scale it keeps the peaks, dB
+                     (default: radiod's)
+  --ka9q-agc-threshold DB
+                     its threshold, dB (default: radiod's)
+  --input FILE       raw interleaved IQ ('-' for stdin)
+  --format F         cf32 (default) or cs16, for --input
+  --rate HZ          sample rate, for --input
+  --record FILE      also write the live IQ to FILE as cf32
+  --duration S       stop after S seconds of IQ
+
+spots:
+  --call CALL        your callsign; spots are sent as CALL-#. Live, the
+                     receiver's own skimmer call (cw_skimmer_callsign in its
+                     /api/description, else its callsign) by default
+  --validation V     relaxed, normal (default) or strict
+  --no-de            CQ spots only; no DE spots
+  --no-heard         no spots of calls heard outside CQ or DE (callers, the
+                     other side of a QSO), which go out with the type blank
+  --squelch DB       minimum SNR to spot (default 0)
+  --respot MIN       spot the same station again only after MIN minutes,
+                     unless it moves 1 kHz or more (default 10, as CW
+                     Skimmer Server)
+  --freq-calibration F
+                     multiply every spot's frequency by F, as Skimmer Server's
+                     FreqCalibration (default 1). F is a factor (1.000000468)
+                     or ppm (+0.5ppm, the same). To take SM7IUN's suggestion
+                     (sm7iun.se, the web page's Analytics tab), multiply this
+                     by its correction factor; it shows from the second day on
+  --all-bands        skim the whole window, CW sub-band or not
+  --max-tracks N     stations each stream can read at once, 128-2048
+                     (default 256 per 96 kHz of stream: 128 at iq48, 1024 at
+                     iq384); a signal found with every track taken is not
+                     read, and the log says so
+  --skim-digital     skim the digital modes' windows too (FT8, FT4, FT2, WSPR
+                     and JS8: each dial frequency and 3 kHz above it), which
+                     are left out by default: a CW decoder reads only busts
+                     there
+  --no-noise-filter  track signals in speech, data and noise too. By
+                     default, spans of a CW segment found to be speech, data
+                     or noise (SSB, a data mode, a swept carrier) start no
+                     tracks on signals there that are not CW, and end those
+                     that are not keyed, have no steady carrier and read no
+                     callsign; the web page shows the spans
+  --no-rtty-filter   track signals on RTTY too. By default two-tone FSK (the
+                     170, 200, 425, 450 and 850 Hz shifts) is found anywhere
+                     in the window but the digital modes' windows, and held
+                     for 20 s at least: no track
+                     starts on it or its sidebands, and those there end; the
+                     web page shows it with its shift
+  --no-rtty          decode no RTTY. By default every 45.45 baud, 170 Hz
+                     signal the RTTY filter finds is decoded, from a few
+                     seconds before it was found, and its text shown live on
+                     the web page's RTTY tab; its calls are spotted as CW's
+                     are (validation, squelch, respotting), within the
+                     amateur bands less the digital windows: at the mark, as
+                     RTTY Skimmer Server on the telnet port after CW's, to
+                     RBN as its RTTY secondary and to PSK Reporter as RTTY.
+                     Off with --no-rtty-filter too
+  --max-rtty N       RTTY signals each band decodes at once, 1-1000 (default
+                     100), shared by its streams; past it, new ones go
+                     undecoded (logged, and the web page's RTTY bar full)
+  --no-jtty          decode no JTTY. By default WSJT-X 3.2's JTTY is decoded
+                     on its dials (7.090, 14.090, 21.090, 28.090 MHz) wherever
+                     a stream covers one (streams take a dial in where that
+                     costs no more of them) and shown live on the web page's
+                     JTTY tab; CQ/DE callers spotted on the telnet port two
+                     after --telnet's and to PSK Reporter, never RBN
+  --no-preroll       a new track reads from when it was found, as before:
+                     by default it reads the start of the mark that found it
+                     too, which a caller's first element otherwise is lost to
+                     (EZ2FOS for IZ2FOS)
+  --static-filter MODE  what static crashes (lightning far off, lifting the
+                     whole band for a few ms, several times a second) may do:
+                     full (default): no track starts, and none is kept
+                     running, on a signal over the threshold only because a
+                     crash lifted the band; starts: none starts so, but
+                     running tracks are kept by them; off: tracked as any
+                     signal. The web page shows how often they come
+  --cty FILE         cty.dat (default: live, the one fetched from AD1C's
+                     country files at start and weekly, else the one found
+                     beside the program)
+  --scp FILE         MASTER.SCP (default: live, the one fetched from Super
+                     Check Partial at start and daily, else the one found
+                     beside the program)
+  --no-fetch         live, do not fetch cty.dat, MASTER.SCP or
+                     cluster-cw-calls.txt; use the ones beside the program
+  --version          print the version and exit
+  --clear-cache      first empty ~/.cache/ubersdr-skimmer (the fetched lists
+                     and FFTW wisdom; the RBN fingerprint is kept), so all
+                     is fetched and learned afresh
+
+output:
+  --compare          live: hold each spot on stdout until RBN has had time to
+                     hear the station (up to 3 minutes), then print it with
+                     what RBN made of it: "RBN:match" (heard on exactly our
+                     frequency, at about our speed), "freq" (heard nearby,
+                     not on our frequency), "wpm" (another speed),
+                     "elsewhere" (heard, but not within 3 kHz), or "none";
+                     their commonest frequency, median speed and how many
+                     skimmers; and "other:CALL" when RBN heard another call
+                     on our frequency. Telnet spots are not held or changed
+  --rbn HOST:PORT    the RBN node for --compare (default
+                     telnet.reversebeacon.net:7000)
+  --name NAME        the operator, as the telnet sign-on and RBN show it
+                     (default: the receiver's callsign)
+  --qth TEXT         the location (default: the receiver's)
+  --locator GRID     6-character locator (default: the receiver's)
+  --rbn              report spots to the Reverse Beacon Network, as RBN
+                     Aggregator v6.7 does (see docs/rbn-protocol); live only
+  --rbn-dry-run      sign on to RBN and judge spots, but upload none
+  --no-patt3ch       with --rbn, also send calls that fit no shape in RBN's
+                     patt3ch.lst (with QRZ lookups, a call QRZ knows is sent
+                     regardless)
+  --wsjtx PORT[:CAL] with --rbn, also spot FT8/FT4 CQs from WSJT-X on this UDP
+                     port (calibration factor CAL, default 1); repeatable
+  --agg-telnet PORT  with --rbn, the reporter's local-user telnet port (as
+                     Aggregator's 7550: the spots sent to RBN, sh/dx)
+  --pskreporter      report spots to PSK Reporter (pskreporter.info) as
+                     UberSDR reports its CW Skimmer's: every spot, as CW, at
+                     most once a call and band in 2 minutes, in a packet every
+                     18-38 s; as --call, at the station's locator. Off by
+                     default; live only
+  --pskreporter-antenna TEXT
+                     the antenna, as PSK Reporter shows it (default none)
+  --pskreporter-server HOST:PORT
+                     where the packets go (default report.pskreporter.info:4739;
+                     port 14739 there analyses them instead, at
+                     pskreporter.info/cgi-bin/psk-analysis.pl)
+  --qrz-user USER --qrz-password PASS
+                     look up each call spotted at QRZ.com (an XML Data
+                     subscription): its position for the page's map, and
+                     the grid square for PSK Reporter's spots. Off unless
+                     both are given and the login at startup succeeds.
+                     With --url the calls are asked of the UberSDR instead
+                     (its /api/lookup, QRZ.com with the UberSDR's own login),
+                     these needed only if it serves no lookups to this
+                     skimmer: its lookup_services off, or this container
+                     not in its lookup_services.trusted_containers
+  --no-qrz           no lookups at all, not even the UberSDR's
+  --qrz-validate     with QRZ lookups, spot only calls QRZ.com knows: a call
+                     QRZ says it does not know is not spotted (asked again
+                     after 24 h), and a spot waits up to 10 s for QRZ's
+                     answer. Whenever QRZ cannot answer (down, an error, no
+                     answer in time) the spot goes out as without it, and
+                     the call is asked again at its next spot. Beacons are
+                     not checked. Off by default
+  --telnet PORT      DX-cluster telnet server (default 7300 when live, off for
+                     --input); 0 turns it off. RTTY's spots on PORT+1, as
+                     RTTY Skimmer Server; JTTY's on PORT+2
+  --json             spots as JSON lines on stdout instead of cluster lines
+  --web PORT         a web page on this port (default 9101 when live, off for
+                     --input; 0 turns it off) for watching it work: spots and
+                     why each was spotted, every band's spectrum and noise
+                     floor, the decoder's tracks and the calls the spotter
+                     is weighing, the RBN reporter, the reference files and
+                     the log, live. Read-only and open to anyone who can
+                     reach the port
+  --web-root DIR     serve the page from DIR (a built web/dist) instead of
+                     the copy built in
+  --radio-password PW
+                     a Radio tab (a WebSDR for one page at a time: an
+                     --hpsdr radio's spare receiver; a 192 kHz channel of
+                     its own on a --ka9q radiod, or session on the --url
+                     receiver, made while a page has the tab open) tuned
+                     only by a page that gives this; anyone may still watch
+                     its spectrum. Before any --hpsdr or --ka9q, every
+                     radio's (and the receiver's); after one, that radio's.
+                     Default: anyone may tune it
+  --no-radio         no Radio tab: before any --hpsdr or --ka9q, for none of
+                     them (nor the receiver); after one, for that radio
+  --tracks           print every station's decoded text as it changes,
+                     instead of spots (with --json, as JSON)
+
+decoder:
+  --debounce D       dits a key change must last; the default (-1) follows
+                     each signal's level
+  --narrow HZ        width of the filter on each station's carrier that its
+                     second reading hears (default 0: follows its speed)
+  --single           read each station from the transform's bin alone, not
+                     also through the narrow filter: half the CPU, fewer
+                     weak stations
+  --no-beam          settle each mark and gap as it ends, rather than weighing
+                     them against the sender's own timing and the words
+                     likely to be sent: a quarter less CPU, fewer stations
+                     copied
+  --calls FILE       calls heard on the air and how often, "CALL<tab>N" a
+                     line, that the decoder expects beside those in
+                     MASTER.SCP (default: live, the one fetched from
+                     ubersdr.org at start and weekly, else
+                     cluster-cw-calls.txt beside MASTER.SCP)
+  --dc-guard         blank the window centre (only for hardware with a DC spike)
+```
+<!-- /options -->
