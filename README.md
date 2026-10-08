@@ -536,6 +536,18 @@ spots:
                      costs no more of them) and shown live on the web page's
                      JTTY tab; CQ/DE callers spotted on the telnet port two
                      after --telnet's and to PSK Reporter, never RBN
+  --ft8 BANDS        decode FT8 on these bands' FT8 dials (20,40 or all;
+                     default none) with WSJT-X's jt9 (--jt9): each band's
+                     streams cover its dial and 0-3.2 kHz above it, whatever
+                     that costs. Every sender heard goes to PSK Reporter
+                     (--pskreporter), CQs and roger reports to RBN (--rbn) as
+                     RBN Aggregator sends WSJT-X's, and each band's latest
+                     cycle to the web page's FT8 tab. Linux only: our link
+                     to jt9 is only written for System V IPC so far
+  --ft8-depth D      jt9's decoding depth: fast, normal (default) or deep.
+                     Linux only, as --ft8
+  --jt9 PATH         the jt9 program FT8 is decoded by (default
+                     /usr/bin/jt9). Linux only, as --ft8
   --no-preroll       a new track reads from when it was found, as before:
                      by default it reads the start of the mark that found it
                      too, which a caller's first element otherwise is lost to
