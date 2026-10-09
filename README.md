@@ -97,10 +97,12 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `VALIDATION` | `normal` | `relaxed`, `normal` or `strict` |
 | `RBN` | `true` | report spots to the Reverse Beacon Network (as RBN Aggregator does); `false` turns it off. RBN needs the station's locator: without one (the receiver publishes no GPS locator and `LOCATOR` is unset) the reporter does not start, the log says so, and the skimmer runs on without it |
 | `RBN_DRY_RUN` | `false` | sign on to RBN and judge spots, but upload none |
+| `RBN_CALL` | `CALLSIGN` | the call RBN knows the skimmer by, its spots as `RBN_CALL-#` |
 | `WEB_PORT` | `6101` | the web page |
 | `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format, RTTY's spots on the next port (7301) in RTTY Skimmer Server's, JTTY's on 7302; `0` turns them all off |
 | `AGG_TELNET_PORT` | | with `RBN`, the reporter's local-user telnet port (as Aggregator's 7550) |
 | `PSKREPORTER` | `false` | `true` reports spots to [PSK Reporter](https://pskreporter.info), as UberSDR reports its CW skimmer's: as `CALLSIGN` at `LOCATOR`, each call at most once a band in 2 minutes. JTTY's calls go too, as JTTY. If UberSDR already uploads its CW spots to PSKReporter (with `cwskimmer.yaml` pointing here), leave this off, or each spot goes twice |
+| `PSKREPORTER_CALL` | `CALLSIGN` | the call reported as to PSK Reporter |
 | `PSKREPORTER_ANTENNA` | | the antenna, as PSK Reporter shows it |
 | `QRZ_USER`, `QRZ_PASSWORD` | | a [QRZ.com](https://www.qrz.com) login with an XML Data subscription: each call spotted is looked up (10,000 kept, the least recently spotted forgotten first), placing it on the web page's Map tab and giving its grid square to PSK Reporter. Checked at startup: if QRZ refuses it, the log and the Map tab say so and the skimmer runs on without. Not needed as an addon: the calls are asked of UberSDR's own lookups (its `lookup_services`, with `skimmer` among its `trusted_containers`), these used only if UberSDR serves none. Commented out in the compose file: uncomment and set them |
 | `QRZ_VALIDATE` | `false` | `true`, with QRZ lookups (UberSDR's, or `QRZ_USER` and `QRZ_PASSWORD`): spot only calls QRZ knows. A call QRZ does not know is not spotted (and asked again after a day); a spot waits up to 10 s for QRZ's answer. When QRZ cannot answer (down, an error, too slow) the spot goes out as without it, and the call is asked again at its next spot. Beacons are not checked |
@@ -109,7 +111,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `RTTY_FILTER` | `true` | find RTTY (two-tone FSK at the usual shifts) anywhere in the band but the digital modes' windows and keep tracks off it and its sidebands, which CW decoders otherwise read callsigns out of (shown tinted on the web page, with its shift). `false` tracks it as any signal, and decodes no RTTY |
 | `RTTY` | `true` | decode the RTTY found (45.45 baud, 170 Hz; the web page's RTTY tab) and spot its calls by CW's rules: on telnet port 7301, to RBN as RTTY and, with `PSKREPORTER`, to PSK Reporter as RTTY. `false` decodes and spots none; the filter still keeps CW tracks off it |
 | `MAX_RTTY` | `100` | RTTY signals each band decodes at once, shared by its streams (10 m has several); past it a new one goes undecoded (still kept clear of CW tracks), the log says so and the web page's RTTY bar shows it full |
-| `JTTY` | `true` | decode WSJT-X 3.2's JTTY on its dials (7.090, 14.090, 21.090 and 28.090 MHz) wherever a stream covers one, shown live on the web page's JTTY tab; streams take a dial in where that costs no more of them. Its calls go to telnet port 7302 and PSK Reporter (with `PSKREPORTER`), never to RBN. `false` decodes none |
+| `JTTY` | `true` | decode WSJT-X 3.2's JTTY on its dials (7.090, 14.090, 21.090 and 28.090 MHz) wherever a stream covers one, shown live on the web page's JTTY tab; streams take a dial in where that costs no more of them. Its calls go to telnet port 7302 and PSK Reporter (with `PSKREPORTER`), never to RBN. `false` decodes none; a list of bands, e.g. `40,20,15`, decodes it on those dials only |
 | `FT8`, `FT4`, `FT2` | | bands to decode each mode on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with the mode's dial (default none), with WSJT-X's `jt9`: senders to PSK Reporter (with `PSKREPORTER`) and FT8's and FT4's CQs to RBN; each mode's tab on the web page. Each band must be among `BANDS`. The image has WSJT-X improved 3.1.0's `jt9` |
 | `FT8_DEPTH`, `FT4_DEPTH`, `FT2_DEPTH` | `normal` | jt9's depth: `fast`, `normal` or `deep` |
 | `JT9` | `/usr/bin/jt9` | the jt9 program (the image's own, or one mounted in) |
@@ -120,7 +122,8 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `WSPR_NOISE_CAL` | | each band's noise is measured every 2 minutes in dBFS/Hz; dB added to make it dBm/Hz, measured for your receiver: one for every band (`-130`) or a band's own (`-130 20:-128.5`) |
 | `WSPR_THREADS` | `4` | WSPR and FST4W decoders run at once (half the cores if fewer: 2 on a Pi 5); a band and mode one at a time, FST4W-1800 one at a time (jt9 takes about 1.1 GB for it) |
 | `WSPRD` | `/usr/bin/wsprd` | the wsprd program (the image's own, or one mounted in) |
-| `WSPRNET` | `false` | `true` uploads WSPR and FST4W spots to [wsprnet.org](https://wsprnet.org) as `CALLSIGN` at `LOCATOR`; spots wait in `/dev/shm` until wsprnet takes them. If UberSDR already uploads this receiver's WSPR, leave this off |
+| `WSPRNET` | `false` | `true` uploads WSPR and FST4W spots to [wsprnet.org](https://wsprnet.org) as `CALLSIGN` at `LOCATOR`; spots wait in `/dev/shm` until wsprnet takes them. If UberSDR already uploads this receiver's WSPR, leave this off. The WSPRnet tab also shows [wspr.live](https://wspr.live)'s ranking of every reporter (yesterday, the last 24 hours, today), fetched a minute after start and hourly |
+| `WSPRNET_CALL` | `CALLSIGN` | the call uploaded as to wsprnet |
 | `STATIC_FILTER` | `full` | static crashes (lightning far off, lifting the whole band for a few ms several times a second): `full` starts no track, and keeps none running, on a signal over the threshold only because a crash lifted the band; `starts` starts none so but lets crashes keep running tracks; `off` tracks them as any signal. The web page shows how often they come (the noise floor drawn bolder, and the stream's "static" figure) |
 | `RADIO` | `true` | the web page's Radio tab: a 192 kHz session of its own on the receiver, opened while a page has the tab open and closed 10 s after the last leaves. `false` turns it off |
 | `RADIO_PASSWORD` | | the Radio tab tuned only by a page that gives this; anyone may still watch its spectrum. Unset: anyone may tune it |
@@ -608,6 +611,8 @@ spots:
                      costs no more of them) and shown live on the web page's
                      JTTY tab; CQ/DE callers spotted on the telnet port two
                      after --telnet's and to PSK Reporter, never RBN
+  --jtty BANDS       JTTY on these bands' dials only (40,20,15,10 or all;
+                     default all)
   --ft8 [BANDS]      decode FT8 on these bands' FT8 dials (20,40 or all;
                      default none) with WSJT-X's jt9 (--jt9); each must be
                      among --bands, or no start. With no list, every band of
@@ -676,9 +681,14 @@ spots:
                      C:\WSJT\wsjtx\bin\wsprd.exe, where WSJT-X installs it)
   --wsprnet          upload WSPR and FST4W spots to wsprnet.org in MEPT
                      uploads (one a cycle, one spot a call a band, our
-                     own call left out), as --call at the station's locator;
-                     spots wait in /dev/shm (on Windows the temporary
-                     directory) until wsprnet says it took them
+                     own call left out), as --wsprnet-call at the station's
+                     locator; spots wait in /dev/shm (on Windows the
+                     temporary directory) until wsprnet says it took them.
+                     The WSPRnet tab also shows wspr.live's ranking of
+                     every reporter (yesterday, the last 24 hours, today),
+                     fetched from db1.wspr.live a minute after start and hourly
+  --wsprnet-call CALL
+                     the call uploaded as to wsprnet (default --call)
   --wsprnet-server URL
                      where uploads go (default http://wsprnet.org/meptspots.php)
   --jt9 PATH         the jt9 program FT8, FT4, FT2 and FST4W are decoded by
@@ -727,6 +737,8 @@ output:
   --rbn              report spots to the Reverse Beacon Network, as RBN
                      Aggregator v6.7 does (see docs/rbn-protocol); live only
   --rbn-dry-run      sign on to RBN and judge spots, but upload none
+  --rbn-call CALL    the call RBN knows this skimmer by, its spots as
+                     CALL-# (default --call)
   --no-patt3ch       with --rbn, also send calls that fit no shape in RBN's
                      patt3ch.lst (with QRZ lookups, a call QRZ knows is sent
                      regardless)
@@ -737,8 +749,9 @@ output:
   --pskreporter      report spots to PSK Reporter (pskreporter.info) as
                      UberSDR reports its CW Skimmer's: every spot, as CW, at
                      most once a call and band in 2 minutes, in a packet every
-                     18-38 s; as --call, at the station's locator. Off by
-                     default; live only
+                     18-38 s; as --psk-call, at the station's locator. Off
+                     by default; live only
+  --psk-call CALL    the call reported as to PSK Reporter (default --call)
   --pskreporter-antenna TEXT
                      the antenna, as PSK Reporter shows it (default none)
   --pskreporter-server HOST:PORT
