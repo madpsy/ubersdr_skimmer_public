@@ -106,7 +106,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `PSKREPORTER_ANTENNA` | | the antenna, as PSK Reporter shows it |
 | `QRZ_USER`, `QRZ_PASSWORD` | | a [QRZ.com](https://www.qrz.com) login with an XML Data subscription: each call spotted is looked up (10,000 kept, the least recently spotted forgotten first), placing it on the web page's Map tab and giving its grid square to PSK Reporter. Checked at startup: if QRZ refuses it, the log and the Map tab say so and the skimmer runs on without. Not needed as an addon: the calls are asked of UberSDR's own lookups (its `lookup_services`, with `skimmer` among its `trusted_containers`), these used only if UberSDR serves none. Commented out in the compose file: uncomment and set them |
 | `QRZ_VALIDATE` | `false` | `true`, with QRZ lookups (UberSDR's, or `QRZ_USER` and `QRZ_PASSWORD`): spot only calls QRZ knows. A call QRZ does not know is not spotted (and asked again after a day); a spot waits up to 10 s for QRZ's answer. When QRZ cannot answer (down, an error, too slow) the spot goes out as without it, and the call is asked again at its next spot. Beacons are not checked |
-| `FREQ_CALIBRATION` | `1` | every frequency is multiplied by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's Analytics tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it |
+| `FREQ_CALIBRATION` | `1` | every frequency is multiplied by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's RBN tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it |
 | `NOISE_FILTER` | `true` | keep tracks off SSB, data, noise and swept carriers in the CW segments (shown tinted on the web page); `false` tracks them as any signal |
 | `RTTY_FILTER` | `true` | find RTTY (two-tone FSK at the usual shifts) anywhere in the band but the digital modes' windows and keep tracks off it and its sidebands, which CW decoders otherwise read callsigns out of (shown tinted on the web page, with its shift). `false` tracks it as any signal, and decodes no RTTY |
 | `RTTY` | `true` | decode the RTTY found (45.45 baud, 170 Hz; the web page's RTTY tab) and spot its calls by CW's rules: on telnet port 7301, to RBN as RTTY and, with `PSKREPORTER`, to PSK Reporter as RTTY. `false` decodes and spots none; the filter still keeps CW tracks off it |
@@ -569,7 +569,7 @@ spots:
                      multiply every spot's frequency by F, as Skimmer Server's
                      FreqCalibration (default 1). F is a factor (1.000000468)
                      or ppm (+0.5ppm, the same). To take SM7IUN's suggestion
-                     (sm7iun.se, the web page's Analytics tab), multiply this
+                     (sm7iun.se, the web page's RBN tab), multiply this
                      by its correction factor; it shows from the second day on
   --all-bands        skim the whole window, CW sub-band or not (2200 m and
                      630 m still never)
