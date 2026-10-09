@@ -4,6 +4,9 @@ services:
     image: madpsy/ubersdr_skimmer:latest
     restart: unless-stopped
     cpu_shares: 512
+    # /dev/shm: WSPR's recordings and decoding, and wsprnet's queued spots,
+    # live there (Docker's default 64 MB is too small for FST4W-1800 on many bands)
+    shm_size: "4gb"
     environment:
       # UberSDR base URL
       UBERSDR_URL: "http://ubersdr:8080"
