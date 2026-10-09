@@ -22,10 +22,14 @@ It reads more than CW:
   for by WSJT-X's own `jt9`, each band's latest cycle on the web page's FT8,
   FT4 and FT2 tabs; senders to PSK Reporter and, for CQs and roger reports
   in FT8 and FT4, to RBN as RBN Aggregator sends them.
-- **WSPR and FST4W** (off by default; Linux): every WSPR and FST4W mode
-  decoded as [wsprdaemon](https://github.com/rrobinett/wsprdaemon) decodes
-  them, with WSJT-X's `wsprd` and `jt9`, shown on the web page's WSPR tab;
-  uploaded to wsprnet.org as wsprdaemon uploads them, and to PSK Reporter.
+- **JS8** (off by default): decoded on the bands asked for (JS8Call's dials,
+  7.078 MHz on 40 m), Normal, Fast, Turbo and Slow at once, its frames put
+  together into messages as JS8Call does. The web page's JS8 tab shows each
+  band's activity and messages; the calls heard go to PSK Reporter with their
+  grids.
+- **WSPR and FST4W** (off by default): every WSPR and FST4W mode
+  decoded with WSJT-X's `wsprd` and `jt9`, shown on the web page's WSPR tab;
+  uploaded to wsprnet.org, and to PSK Reporter.
 
 The web page also has a **Radio** tab: a WebSDR of the receiver, on a 192 kHz
 session of its own made only while a page has the tab open. Everyone with it
@@ -85,7 +89,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 |---|---|---|
 | `UBERSDR_URL` | `http://ubersdr:8080` | the receiver |
 | `UBERSDR_PASSWORD` | | the receiver's password, if it has one |
-| `BANDS` | `all` | `all` is what CW Skimmer Server skims (160–6 m, 60 m, the beacon frequencies), less what the receiver cannot tune; or a list such as `40,30,20` |
+| `BANDS` | `all` | `all` is what CW Skimmer Server skims (160–6 m, 60 m, the beacon frequencies), less what the receiver cannot tune; or a list such as `40,30,20`. `2200` and `630` (2200 m, 630 m) are never in `all` and never skimmed, CW or RTTY: named (`all,2200,630`), each gets a stream for its WSPR and FST4W and the RF tab |
 | `IQ_MODE` | `iq96` | `iq48`, `iq96`, `iq192` or `iq384`: the width of each stream |
 | `MIN_MARGIN` | `15` | reduced-depth IQ, dB under the noise floor; `0` asks for lossless |
 | `CALLSIGN` | the receiver's | spots go out as `CALLSIGN-#` (default: `cw_skimmer_callsign`, else the receiver's callsign) |
@@ -106,14 +110,17 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `RTTY` | `true` | decode the RTTY found (45.45 baud, 170 Hz; the web page's RTTY tab) and spot its calls by CW's rules: on telnet port 7301, to RBN as RTTY and, with `PSKREPORTER`, to PSK Reporter as RTTY. `false` decodes and spots none; the filter still keeps CW tracks off it |
 | `MAX_RTTY` | `100` | RTTY signals each band decodes at once, shared by its streams (10 m has several); past it a new one goes undecoded (still kept clear of CW tracks), the log says so and the web page's RTTY bar shows it full |
 | `JTTY` | `true` | decode WSJT-X 3.2's JTTY on its dials (7.090, 14.090, 21.090 and 28.090 MHz) wherever a stream covers one, shown live on the web page's JTTY tab; streams take a dial in where that costs no more of them. Its calls go to telnet port 7302 and PSK Reporter (with `PSKREPORTER`), never to RBN. `false` decodes none |
-| `FT8`, `FT4`, `FT2` | | bands to decode each mode on, e.g. `20,40` or `all` (default none), with WSJT-X's `jt9`: senders to PSK Reporter (with `PSKREPORTER`) and FT8's and FT4's CQs to RBN; each mode's tab on the web page. Each band must be among `BANDS`. Needs `jt9` in the container: the image has none yet |
+| `FT8`, `FT4`, `FT2` | | bands to decode each mode on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with the mode's dial (default none), with WSJT-X's `jt9`: senders to PSK Reporter (with `PSKREPORTER`) and FT8's and FT4's CQs to RBN; each mode's tab on the web page. Each band must be among `BANDS`. The image has WSJT-X improved 3.1.0's `jt9` |
 | `FT8_DEPTH`, `FT4_DEPTH`, `FT2_DEPTH` | `normal` | jt9's depth: `fast`, `normal` or `deep` |
-| `JT9` | `/usr/bin/jt9` | the jt9 program |
-| `WSPR` | | bands to decode WSPR and FST4W on, e.g. `20,40,80eu` or `all` (default none), as wsprdaemon does, with WSJT-X's `wsprd` (and `jt9` for FST4W); the web page's WSPR tab. Needs them in the container: the image has none yet |
-| `WSPR_MODES` | `W2,F2` | `W2` (WSPR), `W15` (WSPR-15), `F2`, `F5`, `F15`, `F30` (FST4W-120 to -1800) or `all` |
+| `JT9` | `/usr/bin/jt9` | the jt9 program (the image's own, or one mounted in) |
+| `JS8` | | bands to decode JS8 on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with a JS8 dial (default none): Normal, Fast, Turbo and Slow, the calls heard to PSK Reporter (with `PSKREPORTER`) with their grids, never RBN; the web page's JS8 tab. Each band must be among `BANDS`. Needs nothing in the container |
+| `WSPR` | | bands to decode WSPR and FST4W on, e.g. `20,40,80eu` or `all`, or `true` for every band of `BANDS` with a WSPR dial (default none; `80` is both 80 m dials when the stream holds 80eu, `60` likewise), with WSJT-X's `wsprd` (and `jt9` for FST4W); the web page's WSPR tab. The image has WSJT-X improved 3.1.0's `wsprd` and `jt9` |
+| `WSPR_MODES` | `W2,F2,F5`, and `W2,F2,F5,F15,F30` on 2200 m and 630 m | `W2` (WSPR), `W15` (WSPR-15), `F2`, `F5`, `F15`, `F30` (FST4W-120 to -1800) or `all`; a band's own after a space, e.g. `W2,F2,F5 2200:F15,F30 630:all`: a band named takes its own, the list without a band every other (2200 m and 630 m too). Each band keeps only the slice of audio the decoders read, about 11 MB a band with all |
 | `WSPR_DEPTH` | `deep` | `fast`, `normal` or `deep` |
-| `WSPRD` | `/usr/bin/wsprd` | the wsprd program |
-| `WSPRNET` | `false` | `true` uploads WSPR and FST4W spots to [wsprnet.org](https://wsprnet.org) as wsprdaemon does, as `CALLSIGN` at `LOCATOR`; spots wait in `/dev/shm` until wsprnet takes them. If UberSDR already uploads this receiver's WSPR, leave this off |
+| `WSPR_NOISE_CAL` | | each band's noise is measured every 2 minutes in dBFS/Hz; dB added to make it dBm/Hz, measured for your receiver: one for every band (`-130`) or a band's own (`-130 20:-128.5`) |
+| `WSPR_THREADS` | `4` | WSPR and FST4W decoders run at once (half the cores if fewer: 2 on a Pi 5); a band and mode one at a time, FST4W-1800 one at a time (jt9 takes about 1.1 GB for it) |
+| `WSPRD` | `/usr/bin/wsprd` | the wsprd program (the image's own, or one mounted in) |
+| `WSPRNET` | `false` | `true` uploads WSPR and FST4W spots to [wsprnet.org](https://wsprnet.org) as `CALLSIGN` at `LOCATOR`; spots wait in `/dev/shm` until wsprnet takes them. If UberSDR already uploads this receiver's WSPR, leave this off |
 | `STATIC_FILTER` | `full` | static crashes (lightning far off, lifting the whole band for a few ms several times a second): `full` starts no track, and keeps none running, on a signal over the threshold only because a crash lifted the band; `starts` starts none so but lets crashes keep running tracks; `off` tracks them as any signal. The web page shows how often they come (the noise floor drawn bolder, and the stream's "static" figure) |
 | `RADIO` | `true` | the web page's Radio tab: a 192 kHz session of its own on the receiver, opened while a page has the tab open and closed 10 s after the last leaves. `false` turns it off |
 | `RADIO_PASSWORD` | | the Radio tab tuned only by a page that gives this; anyone may still watch its spectrum. Unset: anyone may tune it |
@@ -165,7 +172,7 @@ from exactly one kind of source: `--url`, `--hpsdr`, `--ka9q`, `--driver` or
 |---|---|---|---|---|---|
 | UberSDR receiver | `--url URL` | Linux, Windows | any UberSDR receiver you can reach | one session per band, iq48–iq384 | `--url http://sdr.example.com:8080 --bands all` |
 | HPSDR radio | `--hpsdr IP` | Linux, Windows | Hermes Lite 2, Hermes, Angelia, Orion, ANAN, Red Pitaya, UberSDR's HPSDR bridge | one of the radio's receivers per band, iq48–iq384; on Windows, shared with CWSL tools with `--cwsl` | `--hpsdr 192.168.1.50 --mode iq192 --bands 80,40,30,20` |
-| ka9q-radio | `--ka9q STATUS` | Linux (radiod's host, or the same LAN) | whatever radiod's front end is: RX888, Airspy, Airspy HF+, SDRplay, HackRF, RTL-SDR, FUNcube... | one radiod channel per band, iq48–iq384, made beside its others (wsprdaemon's...) | `--ka9q hf-status.local --bands all` |
+| ka9q-radio | `--ka9q STATUS` | Linux (radiod's host, or the same LAN) | whatever radiod's front end is: RX888, Airspy, Airspy HF+, SDRplay, HackRF, RTL-SDR, FUNcube... | one radiod channel per band, iq48–iq384, made beside its others | `--ka9q hf-status.local --bands all` |
 | Skimmer Server driver | `--driver DLL` | Windows | any radio CW Skimmer Server drives (QS1R, HermesIntf radios, ...) | one of the radio's receivers per band, iq48–iq192; shared with CWSL tools | `--driver C:\Radios\Qs1rIntf.dll --bands 40,30,20` |
 | Recording | `--input FILE` | Linux, Windows | raw IQ as `--record` writes it | one stream | `--input 40m.cf32 --rate 96000 --freq 7020000` |
 
@@ -263,7 +270,7 @@ A [ka9q-radio](https://github.com/ka9q/ka9q-radio) `radiod` already running,
 on a standalone install: an RX888 or any other front end radiod drives. The
 skimmer makes its own IQ channels on it, one per band, beside the channels
 it has. Nothing in radiod's config changes and radiod is not restarted, so it
-runs alongside wsprdaemon (or anything else using that radiod) without
+runs alongside anything else using that radiod without
 disturbing it.
 
 ```
@@ -273,7 +280,7 @@ ubersdr-skimmer-linux-x86_64 --ka9q hf-status.local --bands 40,20 --ka9q-gain 10
 ```
 
 - `STATUS` is radiod's status group, as `status =` in its config's `[global]`
-  section names it (wsprdaemon's is `hf-status.local`), or the group's
+  section names it (often `hf-status.local`), or the group's
   address. avahi is not needed: the name is turned into the address as
   radiod itself does it.
 - radiod is asked what its front end covers, and bands beyond it are left
@@ -287,8 +294,8 @@ ubersdr-skimmer-linux-x86_64 --ka9q hf-status.local --bands 40,20 --ka9q-gain 10
 - Samples come as 32-bit floats; `--ka9q-encoding s16` halves the traffic.
 - The IQ goes to a multicast group of the skimmer's own, so none of radiod's
   other listeners receive it (`--ka9q-data NAME` names the group).
-- radiod is taken to be on the same host, whatever its `ttl` (wsprdaemon sets
-  `ttl = 0`, which keeps radiod's traffic on the loopback interface). For a
+- radiod is taken to be on the same host, whatever its `ttl` (a
+  `ttl = 0` keeps radiod's traffic on the loopback interface). For a
   radiod on another host, with its `ttl` above 0, give the interface it is
   reached on: `--ka9q-iface eth0`.
 - The channels are closed when the skimmer stops. If it dies instead, radiod
@@ -379,10 +386,14 @@ names is `sdr-host-x86-....exe`.
 
 ---
 
-### FT8, FT4, FT2 and WSPR (Linux)
+### FT8, FT4, FT2 and WSPR
 
 These need WSJT-X's programs: `jt9` for FT8, FT4, FT2 and FST4W, `wsprd` for
-WSPR (`apt install wsjtx` has both, in `/usr/bin`). Each band asked for must
+WSPR (`apt install wsjtx` has both, in `/usr/bin`; on Windows, WSJT-X's
+installer puts them in `C:\WSJT\wsjtx\bin`, where they are looked for). FT2
+needs [WSJT-X improved](https://sourceforge.net/projects/wsjt-x-improved/)
+(WSJT-X's own has no FT2); tested with 3.1.0 improved AL_PLUS on Linux and
+Windows. Each band asked for must
 be among `--bands`; the skimmer will not start otherwise, nor without the
 program a mode needs.
 
@@ -390,7 +401,7 @@ program a mode needs.
 ./ubersdr-skimmer --url http://receiver:8080 --bands 20,40 --ft8 20,40
 ./ubersdr-skimmer --url http://receiver:8080 --bands all --ft8 all --ft4 20,40 --ft2 20 --ft8-depth deep --pskreporter
 ./ubersdr-skimmer --url http://receiver:8080 --bands 20,40 --wspr 20,40
-./ubersdr-skimmer --url http://receiver:8080 --bands all --wspr all --wspr-modes all --wsprnet
+./ubersdr-skimmer --url http://receiver:8080 --bands all --wspr --wspr-modes all --wsprnet
 ./ubersdr-skimmer --url http://receiver:8080 --bands 20,475 --wspr 20,630 --wsprd /opt/wsjtx/bin/wsprd
 ```
 
@@ -399,6 +410,26 @@ FT4's CQs and roger reports, to RBN with `--rbn`. WSPR and FST4W go to
 wsprnet.org with `--wsprnet` and to PSK Reporter with `--pskreporter`, never
 to RBN. 2200, 630, 22 and 8 m WSPR need a stream given by its centre in
 `--bands`, in kHz (`475` for 630 m). Every option is below.
+
+### JS8
+
+```
+./ubersdr-skimmer --url http://receiver:8080 --bands 20,40 --js8 20,40
+./ubersdr-skimmer --url http://receiver:8080 --bands all --js8 --pskreporter
+```
+
+Each band asked for must be among `--bands` (with no list, every band of
+`--bands` with a JS8 dial: 1.842, 3.578, 7.078, 10.130, 14.078, 18.104,
+21.078, 24.922, 28.078 and 50.318 MHz), its streams covering the dial and the
+3.2 kHz above it. Normal, Fast, Turbo and Slow are decoded at once (not
+Ultra), the frames put together into messages as JS8Call puts them together,
+and the calls JS8Call would report go to PSK Reporter with `--pskreporter`,
+with the grids they gave; never to RBN or telnet. The web page's JS8 tab has
+a panel a band: its band activity, a row an audio offset with the text heard
+there as it comes (kept 10 minutes after its last frame), beside its
+messages, one a line, newest first, the sender marked, with its country and
+distance. The decoder takes 3 to 8 s to make at the start and about 54 MB,
+shared by every band.
 
 ## Every option
 
@@ -432,7 +463,10 @@ input:
                      /api/description range). A band wider than one stream
                      gets two. A number is a centre in kHz: 20,14100 adds a
                      stream at 14.100. Where two streams overlap, each
-                     skims the half nearer its centre
+                     skims the half nearer its centre. 2200 and 630 (2200 m,
+                     630 m) are never in all and never skimmed, CW or RTTY:
+                     named, a stream each covers the whole band, for its
+                     WSPR and FST4W (--wspr) and the RF tab
   --driver DLL       a radio, through its CW Skimmer Server driver
                      (Qs1rIntf.dll, HermesIntf.dll, ...: the DLL CWSL_Tee.cfg
                      names), as Skimmer Server drives it: one receiver per
@@ -483,7 +517,7 @@ input:
                      iq96 or iq192. --cwsl-blocks or --cwsl-suffix after an
                      --hpsdr say it too
   --ka9q STATUS      a ka9q-radio radiod: its status group, as its config's
-                     [global] status = says (wsprdaemon's: hf-status.local),
+                     [global] status = says (often hf-status.local),
                      or that group's address. One IQ channel is made on it
                      per band of --bands (or the one of --freq), beside the
                      channels it has, and closed as the skimmer stops (or
@@ -534,7 +568,8 @@ spots:
                      or ppm (+0.5ppm, the same). To take SM7IUN's suggestion
                      (sm7iun.se, the web page's Analytics tab), multiply this
                      by its correction factor; it shows from the second day on
-  --all-bands        skim the whole window, CW sub-band or not
+  --all-bands        skim the whole window, CW sub-band or not (2200 m and
+                     630 m still never)
   --max-tracks N     stations each stream can read at once, 128-2048
                      (default 256 per 96 kHz of stream: 128 at iq48, 1024 at
                      iq384); a signal found with every track taken is not
@@ -573,47 +608,82 @@ spots:
                      costs no more of them) and shown live on the web page's
                      JTTY tab; CQ/DE callers spotted on the telnet port two
                      after --telnet's and to PSK Reporter, never RBN
-  --ft8 BANDS        decode FT8 on these bands' FT8 dials (20,40 or all;
+  --ft8 [BANDS]      decode FT8 on these bands' FT8 dials (20,40 or all;
                      default none) with WSJT-X's jt9 (--jt9); each must be
-                     among --bands, or no start. Each band's streams cover
-                     its dial and 0-3.2 kHz above it, whatever that costs. Every sender heard goes to PSK Reporter
+                     among --bands, or no start. With no list, every band of
+                     --bands with an FT8 dial (one its streams still miss
+                     left out, said). Each band's streams cover its dial and
+                     0-3.2 kHz above it, whatever that costs. Every sender
+                     heard goes to PSK Reporter
                      (--pskreporter), CQs and roger reports to RBN (--rbn) as
                      RBN Aggregator sends WSJT-X's, and each band's latest
-                     cycle to the web page's FT8 tab. Linux only: our link
-                     to jt9 is only written for System V IPC so far
-  --ft8-depth D      jt9's decoding depth: fast, normal (default) or deep.
-                     Linux only, as --ft8
-  --ft4 BANDS        decode FT4 (7.5 s cycles) on these bands' FT4 dials, as
-                     --ft8 does FT8, to PSK Reporter, RBN and an FT4 tab.
-                     Linux only, as --ft8
+                     cycle to the web page's FT8 tab
+  --ft8-depth D      jt9's decoding depth: fast, normal (default) or deep
+  --ft4 [BANDS]      decode FT4 (7.5 s cycles) on these bands' FT4 dials, as
+                     --ft8 does FT8, to PSK Reporter, RBN and an FT4 tab
   --ft4-depth D      as --ft8-depth, for FT4
-  --ft2 BANDS        decode FT2 (3.75 s cycles) on these bands' FT2 dials, as
+  --ft2 [BANDS]      decode FT2 (3.75 s cycles) on these bands' FT2 dials, as
                      --ft8 does FT8, to PSK Reporter and an FT2 tab; never
-                     to RBN, as RBN Aggregator takes no FT2. Linux only, as
-                     --ft8
+                     to RBN, as RBN Aggregator takes no FT2. Needs WSJT-X
+                     improved's jt9 (WSJT-X's own has no FT2)
   --ft2-depth D      as --ft8-depth, for FT2
-  --wspr BANDS       decode WSPR and FST4W on these bands' WSPR dials (20,40,
-                     80eu, all; default none) as wsprdaemon does: each whole
+  --js8 [BANDS]      decode JS8 (Normal, Fast, Turbo and Slow at once) on
+                     these bands' JS8 dials (1.842, 3.578, 7.078, 10.130,
+                     14.078 MHz and up; 20,40 or all; default none; with no
+                     list, every band of --bands with a JS8 dial), each
+                     band's streams covering its dial and 0-3.2 kHz above it.
+                     Frames are put together into messages, and the calls
+                     heard go to PSK Reporter (--pskreporter) with their
+                     grids; the web page's JS8 tab shows each band's
+                     activity and messages. Never to RBN or telnet
+  --wspr [BANDS]     decode WSPR and FST4W on these bands' WSPR dials (20,40,
+                     80eu, all; default none; with no list, every band of
+                     --bands with a WSPR dial). 80 is 80 m's dials both,
+                     60 60 m's, the second (80eu, 60eu) when the band's
+                     streams hold it, else left out, said. Each whole
                      transmission period cut by the clock and given to WSJT-X's
                      wsprd or jt9 (--wsprd, --jt9); each band's streams cover
-                     its dial and 0-2.4 kHz above it (2200, 630, 22 and 8 m:
-                     give a stream's centre in --bands). Spots to the web
+                     its dial and 0-2.4 kHz above it (22 and 8 m: give a
+                     stream's centre in --bands). Spots to the web
                      page's WSPR tab, PSK Reporter (with a locator), and
-                     wsprnet.org with --wsprnet. Linux only, as --ft8
+                     wsprnet.org with --wsprnet
   --wspr-modes M     the modes decoded: W2 (WSPR), W15 (WSPR-15), F2, F5, F15,
-                     F30 (FST4W-120 to -1800), or all (default W2,F2); each
-                     band holds its longest mode's period of audio (F30: 30
-                     min, about 43 MB)
+                     F30 (FST4W-120 to -1800), or all; default W2,F2,F5 (the
+                     15 and 30 minute modes asked for), but on 2200 and 630
+                     W2,F2,F5,F15,F30. A band's own after a space or ';',
+                     "W2,F2,F5 2200:F15,F30 630:all": a band named takes its
+                     own, the list without a band every other (2200 and 630
+                     too: their own default stands only without one); 80eu
+                     and 60eu take 80's and 60's unless named. Each band
+                     keeps only the band the decoders read (1500 Hz +- 375
+                     above the dial), its longest mode's period: all modes,
+                     about 11 MB a band
   --wspr-depth D     wsprd's and jt9's depth: fast, normal or deep (default)
-  --wsprd PATH       the wsprd program (default /usr/bin/wsprd)
-  --wsprnet          upload WSPR and FST4W spots to wsprnet.org as wsprdaemon
-                     does (one MEPT upload a cycle, one spot a call a band, our
+  --wspr-noise-cal DB
+                     each WSPR band's noise is measured every 2 minutes (RMS
+                     over the quiet seconds before and after the
+                     transmissions, and FFT over the quietest three tenths
+                     of the period's bins), as a density, dBFS/Hz: at the
+                     receiver's input where it says its level (UberSDR,
+                     ka9q; an HPSDR radio's attenuator taken out), else of
+                     its IQ. DB, measured for your receiver, is added to make
+                     it dBm/Hz: one for every band, or a band's own as
+                     --wspr-modes gives them, "-130 20:-128.5"
+  --wspr-threads N   WSPR and FST4W decoders run at once (1-64; default 4,
+                     or half the cores if fewer); a band and mode one at a time,
+                     FST4W-1800 one at a time (jt9 takes about 1.1 GB for it)
+  --wsprd PATH       the wsprd program (default /usr/bin/wsprd; on Windows
+                     C:\WSJT\wsjtx\bin\wsprd.exe, where WSJT-X installs it)
+  --wsprnet          upload WSPR and FST4W spots to wsprnet.org in MEPT
+                     uploads (one a cycle, one spot a call a band, our
                      own call left out), as --call at the station's locator;
-                     spots wait in /dev/shm until wsprnet says it took them
+                     spots wait in /dev/shm (on Windows the temporary
+                     directory) until wsprnet says it took them
   --wsprnet-server URL
                      where uploads go (default http://wsprnet.org/meptspots.php)
-  --jt9 PATH         the jt9 program FT8, FT4 and FT2 are decoded by
-                     (default /usr/bin/jt9). Linux only, as --ft8
+  --jt9 PATH         the jt9 program FT8, FT4, FT2 and FST4W are decoded by
+                     (default /usr/bin/jt9; on Windows
+                     C:\WSJT\wsjtx\bin\jt9.exe)
   --no-preroll       a new track reads from when it was found, as before:
                      by default it reads the start of the mark that found it
                      too, which a caller's first element otherwise is lost to
