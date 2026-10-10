@@ -116,6 +116,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `QRZ_VALIDATE` | `false` | `true`, with QRZ lookups (UberSDR's, or `QRZ_USER` and `QRZ_PASSWORD`): spot only calls QRZ knows. A call QRZ does not know is not spotted (and asked again after a day); a spot waits up to 10 s for QRZ's answer. When QRZ cannot answer (down, an error, too slow) the spot goes out as without it, and the call is asked again at its next spot. Beacons are not checked |
 | `FREQ_CALIBRATION` | `1` | every frequency is multiplied by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's RBN tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it |
 | `NOISE_FILTER` | `true` | keep tracks off SSB, data, noise and swept carriers in the CW segments (shown tinted on the web page); `false` tracks them as any signal |
+| `GAP_FILL` | `true` | silence where the UberSDR's packets went missing (found by their timestamps), so WSPR and FT keep time; `false` passes the stream as it comes |
 | `RTTY_FILTER` | `true` | find RTTY (two-tone FSK at the usual shifts) anywhere in the band but the digital modes' windows and keep tracks off it and its sidebands, which CW decoders otherwise read callsigns out of (shown tinted on the web page, with its shift). `false` tracks it as any signal, and decodes no RTTY |
 | `RTTY` | `true` | decode the RTTY found (45.45 baud, 170 Hz; the web page's RTTY tab) and spot its calls by CW's rules: on telnet port 7301, to RBN as RTTY and, with `PSKREPORTER`, to PSK Reporter as RTTY. `false` decodes and spots none; the filter still keeps CW tracks off it |
 | `MAX_RTTY` | `100` | RTTY signals each band decodes at once, shared by its streams (10 m has several); past it a new one goes undecoded (still kept clear of CW tracks), the log says so and the web page's RTTY bar shows it full |
@@ -627,6 +628,10 @@ input:
   --margin DB        reduced-depth stream, 10-60 dB under the noise (default
                      15); 0 asks for the lossless stream
   --insecure         do not verify the receiver's TLS certificate
+  --no-gap-fill      put no silence where the receiver's packets went missing.
+                     By default lost packets, found by their timestamps, are
+                     made up with as much silence, so the decoders keep time
+                     (WSPR's periods, FT8's cycles)
   --freq HZ          centre frequency, Hz
   --bands LIST       live: several bands at once, e.g. 40,30,20, or all:
                      160-6 m as CW Skimmer Server skims them (with 60 m,

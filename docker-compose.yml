@@ -25,6 +25,9 @@ services:
       # Skim CW and spot its calls: telnet port 7300, RBN and PSK Reporter;
       # "false" turns it off, leaving RTTY, JTTY, FT, WSPR and JS8 running
       CW: "true"
+      # Silence where the UberSDR's packets went missing (found by their
+      # timestamps), so WSPR and FT keep time; "false" turns it off
+      GAP_FILL: "true"
       # Decode RTTY (the web page's RTTY tab) and spot its calls: telnet
       # port 7301, RBN and PSK Reporter as RTTY; "false" turns it off
       RTTY: "true"
