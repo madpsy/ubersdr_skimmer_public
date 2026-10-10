@@ -565,6 +565,10 @@ spots:
   --respot MIN       spot the same station again only after MIN minutes,
                      unless it moves 1 kHz or more (default 10, as CW
                      Skimmer Server)
+  --spot-hold MIN    never send a call again in the same mode within 1 kHz
+                     for MIN minutes, whatever spotted it (two streams on one
+                     signal), unless as a CQ after a DE or blank spot, or a
+                     DE after a blank one; 0 for no hold (default 5)
   --freq-calibration F
                      multiply every spot's frequency by F, as Skimmer Server's
                      FreqCalibration (default 1). F is a factor (1.000000468)
