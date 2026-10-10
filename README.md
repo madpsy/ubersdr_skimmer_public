@@ -7,7 +7,8 @@ Server does: on a DX-cluster telnet port, and optionally to the Reverse
 Beacon Network as RBN Aggregator does (on by default) and to PSK Reporter
 (off by default). A live web page shows it at work.
 
-It reads more than CW:
+It reads more than CW, and `CW: "false"` turns CW off and leaves the rest
+running:
 
 - **RTTY**: every 45.45 baud, 170 Hz RTTY signal in the bands is decoded,
   its text shown live on the web page's RTTY tab, and the calls it sends are
@@ -144,6 +145,167 @@ the RBN reporter's state are kept in `~/ubersdr/skimmer/cache`.
 | 7300 | DX-cluster telnet, `skimmer:7300` on the Docker network. Not published on the host; uncomment `ports:` in the compose file to publish it (the dxcluster addon may already use 7300 there) |
 | 7301 | RTTY's spots, as RTTY Skimmer Server's telnet, `skimmer:7301`. Not published either |
 | 7302 | JTTY's spots, in the same lines, `skimmer:7302`. Not published either |
+
+## The feed: every spot and the skimmer's health, for your own program
+
+`/api/feed` is a stream your own program can read: every spot the skimmer
+validates, in every mode (CW, RTTY, JTTY, FT8, FT4, FT2, WSPR, FST4W, JS8),
+in one JSON form, with what QRZ has of the call when it has been looked up;
+and every 10 seconds the skimmer's health, with a status to alert on. It is
+like having the decoders running in your program: spots are sent as they
+are made, never held back as repeats (nothing is held for 5 minutes as it is
+for RBN and telnet).
+
+It is a [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+stream on the web port, so any language can read it: an HTTP GET that stays
+open, one message after another.
+
+**Where.** Through UberSDR, at the addon's address:
+
+```
+curl -N http://<receiver>/addon/skimmer/api/feed
+```
+
+From another container on UberSDR's Docker network, `http://skimmer:6101/api/feed`.
+The page's Telnet tab shows the address as your browser reaches it, under
+Help, with the programs reading the feed now (where from, what they asked
+for, what they have been sent), and Connect there makes the page an example
+consumer, showing each message as your program would get it.
+
+**Choosing.** `?types=spot,health` the message types; `?modes=CW,FT8` spots
+of these families or modes (a family takes all its modes); `?bands=20,40`
+spots on these bands:
+
+```
+curl -N 'http://<receiver>/addon/skimmer/api/feed?types=spot&modes=CW,FT8&bands=20,40'
+```
+
+### Messages
+
+Each message is an event named by its type, its data one line of JSON whose
+`type` says the same, first; a blank line ends it, and a line starting with a
+colon is a keepalive (every 15 seconds) to ignore. More types may come: **a
+program is to ignore types, and fields, it does not know.** Each message's
+`v` is the version of its type's form, raised only if a field changes
+meaning or goes.
+
+```
+id: 1791639174496
+event: spot
+data: {"type":"spot","seq":1791639174496,"v":1,"t":1791639189,"spotter":"M9PSY","family":"CW","mode":"CW","band":"20","freq_hz":14018995.5,"call":"HG0R","snr":37,"spot_type":"CQ","wpm":27,"entity":"Hungary","continent":"EU","qrz":{"call":"HG0R","name":"...","country":"Hungary","grid":"JN97ma","lat":47.5,"lon":19.04,"lotw":true,...}}
+```
+
+**`spot`**, one a validated spot:
+
+| Field | |
+|---|---|
+| `seq` | its id, ascending (also the event's id) |
+| `t` | when heard, UTC Unix seconds; FT, WSPR and JS8: the start of the cycle or period it was sent in |
+| `spotter` | this skimmer's call |
+| `family` | `CW`, `RTTY`, `JTTY`, `FT`, `WSPR` or `JS8` |
+| `mode` | within the family: `FT8`, `FT4`, `FT2`, `WSPR-2`, `FST4W-300`, `JS8-Turbo`...; for CW, RTTY and JTTY the family |
+| `band` | metres, without the m: `"20"`, `"630"` |
+| `freq_hz` | the signal's frequency, Hz (CW, RTTY and JTTY to 0.1 Hz) |
+| `call`, `snr` | the sender, and its SNR in dB (FT, WSPR and JS8 in 2500 Hz, as their decoders give it) |
+| `spot_type` | `CQ`, `DE`, `BEACON`, `NCDXF` or `HEARD` |
+| `wpm` / `baud` | CW's speed / RTTY's and JTTY's |
+| `locator` | the sender's own, when it sent one |
+| `dbm`, `spread_hz` | WSPR's power; FST4W's spread |
+| `entity`, `continent` | the sender's country and continent, by cty.dat |
+| `qrz` | QRZ's record of the call, when the skimmer has it: `call` (QRZ's, the home call), `name`, `city`, `county`, `state`, `country`, `grid`, `lat`, `lon`, `geoloc`, `license`, `qsl`, `lotw`, `eqsl`, `mqsl`, `dxcc`, `cq_zone`, `itu_zone`, `born`, `url`, `image`, `at` (when QRZ answered), and `home_only`, true when the call signs from elsewhere (`EA5/G4ABC`, `/MM`) so the place is its home station's |
+
+Fields are left out where they do not apply. `qrz` comes from the skimmer's
+QRZ lookups (UberSDR's, or `--qrz-user`), never asked for by the feed: CW,
+RTTY and JTTY calls are looked up as they are spotted, so a call's first spot
+may come before QRZ answers; FT, WSPR and JS8 calls, too many to look up,
+have it only when already looked up.
+
+**`health`**, every 10 seconds, and the latest to a new reader at once:
+
+| Field | |
+|---|---|
+| `status` | `ok`, `warn` or `error`: the one to alert on |
+| `problems` | what makes it so, each a `level`, `part` (`receivers`, `receiver 20`, `decoder FT8 20`, `rbn`, `pskreporter`, `wsprnet`, `cpu`) and `text` |
+| `cpu` | `percent` of the machine the skimmer and its decoders take, `cores`, and cores busy: `skimmer`, `decoders` |
+| `memory` | bytes: `rss`, `own`, `decoders` |
+| `receivers` | `up` of `total`: the IQ streams sending samples |
+| `spots` | by family: `total` sent on the feed, and in the `last_min` |
+| `reporters` | `rbn`, `pskreporter`, `wsprnet`, those running: sent, failed (and in the last minute), queued, `last_error` |
+| `version`, `uptime_s` | |
+
+An error: no receiver sending samples, or RBN taking nothing for 10 minutes
+with spots waiting. A warning: a receiver or FT decoder down, a failure
+sending to RBN, PSK Reporter or wsprnet in the last minute (wsprnet's until
+an upload succeeds), or the machine's CPU 90% busy. No message for 30
+seconds: take the skimmer as down.
+
+**`gap`**: `{"type":"gap","since":ID,"oldest":ID}`, spots missed and no
+longer kept (see Resuming).
+
+### Resuming
+
+A program that reconnects with the last id it read, as the header
+`Last-Event-ID: ID` (a browser's EventSource sends it itself) or `?since=ID`,
+gets the spots it missed while they are still kept (the last 8 MB: minutes
+on a busy FT8 day, hours of CW), then those to come. If some are no longer
+kept, or the skimmer has restarted, a `gap` comes first. A program 16 MB
+behind is disconnected, to reconnect and resume.
+
+### An example consumer
+
+An example to start your own from, Python 3 with nothing to install: it
+prints each spot (with the operator's name when QRZ's record is there), and
+the health when it is not `ok`, resuming where it left off after a dropped
+connection. Your program can do what it likes with the messages: log them,
+store them, map them, alert on the health.
+
+```python
+import json, time, urllib.request
+
+URL = "http://<receiver>/addon/skimmer/api/feed"
+last_id = None  # where to resume from after a reconnect
+
+while True:
+    headers = {"Last-Event-ID": last_id} if last_id else {}
+    try:
+        with urllib.request.urlopen(urllib.request.Request(URL, headers=headers), timeout=60) as r:
+            event, data = None, []
+            for raw in r:
+                line = raw.decode("utf-8").rstrip("\r\n")
+                if line.startswith("id: "):
+                    last_id = line[4:]
+                elif line.startswith("event: "):
+                    event = line[7:]
+                elif line.startswith("data: "):
+                    data.append(line[6:])
+                elif line == "" and data:  # a blank line ends a message
+                    msg = json.loads("\n".join(data))
+                    if event == "spot":
+                        name = msg.get("qrz", {}).get("name", "")
+                        print(msg["call"], msg["mode"], msg["band"], msg["freq_hz"], msg["snr"], name)
+                    elif event == "health" and msg["status"] != "ok":
+                        print("health:", msg["status"], msg["problems"])
+                    # any other type: ignored
+                    event, data = None, []
+    except OSError as e:
+        print("reconnecting:", e)
+        time.sleep(3)
+```
+
+In JavaScript (a browser, or Node 22 and later), an EventSource does the
+reading, the reconnecting and the resuming itself:
+
+```js
+const es = new EventSource("http://<receiver>/addon/skimmer/api/feed?types=spot,health");
+es.addEventListener("spot", (e) => {
+  const s = JSON.parse(e.data);
+  console.log(s.call, s.mode, s.band, s.freq_hz, s.snr, s.qrz?.name ?? "");
+});
+es.addEventListener("health", (e) => {
+  const h = JSON.parse(e.data);
+  if (h.status !== "ok") console.warn(h.status, h.problems);
+});
+```
 
 ## Helper scripts
 
@@ -581,6 +743,11 @@ spots:
                      (default 256 per 96 kHz of stream: 128 at iq48, 1024 at
                      iq384); a signal found with every track taken is not
                      read, and the log says so
+  --no-cw            skim no CW: no CW signal is tracked or read, so no CW
+                     spot is made (telnet, RBN, PSK Reporter, the web page).
+                     The streams still run for everything else: RTTY, JTTY,
+                     FT, WSPR and JS8, the spectrum, the RF tab and
+                     listening. Saves the CPU CW reading takes
   --skim-digital     skim the digital modes' windows too (FT8, FT4, FT2, WSPR
                      and JS8: each dial frequency and 3 kHz above it), which
                      are left out by default: a CW decoder reads only busts

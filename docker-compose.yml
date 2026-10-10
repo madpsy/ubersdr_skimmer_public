@@ -22,6 +22,9 @@ services:
       # Leave "false" if UberSDR already uploads its CW skimmer's spots to
       # PSKReporter with cwskimmer.yaml pointing here, or each goes twice
       PSKREPORTER: "false"
+      # Skim CW and spot its calls: telnet port 7300, RBN and PSK Reporter;
+      # "false" turns it off, leaving RTTY, JTTY, FT, WSPR and JS8 running
+      CW: "true"
       # Decode RTTY (the web page's RTTY tab) and spot its calls: telnet
       # port 7301, RBN and PSK Reporter as RTTY; "false" turns it off
       RTTY: "true"
