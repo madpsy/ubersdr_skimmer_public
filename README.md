@@ -7,6 +7,13 @@ Server does: on a DX-cluster telnet port, and optionally to the Reverse
 Beacon Network as RBN Aggregator does (on by default) and to PSK Reporter
 (off by default). A live web page shows it at work.
 
+> **WSJT-X improved, not WSJT-X.** FT8, FT4, FT2, WSPR and FST4W are decoded
+> with WSJT-X's own programs (`jt9`, `wsprd`). Running the binaries yourself,
+> install [WSJT-X improved](https://sourceforge.net/projects/wsjt-x-improved/),
+> not the normal WSJT-X: only improved's `jt9` decodes FT2. The container
+> already has the right version (WSJT-X improved 3.1.0's `jt9` and `wsprd`):
+> nothing to install for the addon.
+
 It reads more than CW, and `CW: "false"` turns CW off and leaves the rest
 running:
 
