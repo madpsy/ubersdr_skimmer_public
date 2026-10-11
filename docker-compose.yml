@@ -18,6 +18,9 @@ services:
       # as CALLSIGN-# with the receiver's call, name, QTH and locator by
       # default; "false" turns it off
       RBN: "true"
+      # Width of each IQ stream: iq48, iq96, iq192 or iq384; wider, fewer
+      # streams (sessions) for the same bands
+      IQ_MODE: "iq192"
       # Report spots (CW, RTTY, JTTY) to PSK Reporter as CALLSIGN at LOCATOR.
       # Leave "false" if UberSDR already uploads its CW skimmer's spots to
       # PSKReporter with cwskimmer.yaml pointing here, or each goes twice
@@ -39,7 +42,6 @@ services:
       CALLSIGN: ""
       # Uncomment and set as needed (empty = the default):
       # UBERSDR_PASSWORD: ""  # the receiver's password, if it has one
-      # IQ_MODE: "iq96"       # iq48, iq96, iq192 or iq384
       # MIN_MARGIN: "15"      # reduced-depth IQ, dB under the noise; 0 = lossless
       # NAME: ""              # operator, for the telnet sign-on and RBN (default: the receiver's)
       # QTH: ""               # location (default: the receiver's)
