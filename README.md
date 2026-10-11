@@ -619,35 +619,10 @@ WSPR tab and Analytics, at about 0.7 ms a decode, the decodes unchanged.
 
 ### wsprd on its own
 
-That decoder is also released as a program of its own, `wsprd`, in the
-[Releases](https://github.com/madpsy/ubersdr_skimmer_public/releases) tagged
-`wsprd-v...` (`wsprd-linux-x86_64`, `wsprd-linux-aarch64`,
-`wsprd-windows-x86_64.exe`): a drop-in for WSJT-X's `wsprd`, for anything
-that runs one. It takes the same options and writes the same output and
-files (stdout, `ALL_WSPR.TXT`, `wspr_spots.txt`, `hashtable.txt`, the `-c`
-file), byte for byte, checked against WSJT-X's own on every option and
-recording. Against WSJT-X's own `wsprd` (3.2.0-rc1, built with WSJT-X's
-Release flags on each machine), over six real 2-minute periods (five on
-40 m, WSJT-X's sample) with `-C 500 -o 4 -d`, the same decodes:
-
-| CPU for 6 WSPR periods | WSJT-X's wsprd | this wsprd | |
-|---|---:|---:|---:|
-| x86-64 (Ryzen 7 5700U) | 13.7 s | 1.5 s | 9.1x |
-| Raspberry Pi 5 | 19.6 s | 3.4 s | 5.7x |
-
-A period takes 0.2-0.3 s on the PC (1.7-3.0 s before), 0.5-0.7 s on the
-Pi 5 (2.5-4.2 s before). It needs nothing installed (on Linux, FFTW's
-single-precision library: `sudo apt install libfftw3-single3`), and the
-skimmer does not use it.
-
-One option more, `-n`, as an older spread build of `wsprd` had it: no search
-for a drifting signal, and each `ALL_WSPR.TXT` line ending in the signal's
-spread in Hz (`%6.3f`). `wsprd --version` gives the release it came in.
-
-```
-./wsprd-linux-x86_64 -c -C 500 -o 4 -d -f 14.0956 261011_1200.wav
-./wsprd-linux-x86_64 -n -C 500 -o 4 -d -f 14.0956 261011_1200.wav
-```
+This decoder is also a program of its own, a drop-in for WSJT-X's `wsprd`
+(the same options, output and files, byte for byte, plus `-n`), for Linux
+and Windows: [ubersdr_wsprd](https://github.com/madpsy/ubersdr_wsprd), with
+its source. The skimmer does not need it.
 
 ### FT8, FT4, FT2 and WSPR
 
