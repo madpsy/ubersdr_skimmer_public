@@ -103,7 +103,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `UBERSDR_URL` | `http://ubersdr:8080` | the receiver |
 | `UBERSDR_PASSWORD` | | the receiver's password, if it has one |
 | `BANDS` | `all` | `all` is what CW Skimmer Server skims (160–6 m, 60 m, the beacon frequencies), less what the receiver cannot tune; or a list such as `40,30,20`. `2200` and `630` (2200 m, 630 m) are never in `all` and never skimmed, CW or RTTY: named (`all,2200,630`), each gets a stream for its WSPR and FST4W and the RF tab |
-| `IQ_MODE` | `iq96` | `iq48`, `iq96`, `iq192` or `iq384`: the width of each stream |
+| `IQ_MODE` | `iq192` | `iq48`, `iq96`, `iq192` or `iq384`: the width of each stream |
 | `MIN_MARGIN` | `15` | reduced-depth IQ, dB under the noise floor; `0` asks for lossless |
 | `CALLSIGN` | the receiver's | spots go out as `CALLSIGN-#` (default: `cw_skimmer_callsign`, else the receiver's callsign) |
 | `NAME`, `QTH`, `LOCATOR` | the receiver's | the station, for the telnet sign-on and RBN |
@@ -320,6 +320,26 @@ es.addEventListener("health", (e) => {
   if (h.status !== "ok") console.warn(h.status, h.problems);
 });
 ```
+
+### /api/health: for a health check
+
+A plain GET for Docker's `HEALTHCHECK` or a monitor, answered at once:
+`{"live":true,"problems":[],"status":"ok","health":{...}}`, `health` being
+the latest `health` message (null for the first 10 seconds) and `status` its
+status.
+
+It is **503** only when the skimmer itself is stuck, which a restart would
+mend: its state not gathered for 30 seconds (the web page's ticker), or a
+stream inside its decoders for 60 seconds (a block of IQ takes
+milliseconds); `problems` says which. A receiver away, or RBN, PSK Reporter
+or wsprnet failing, is never one: the streams reconnect by themselves (an
+UberSDR stream that sends no IQ for 15 seconds is dropped and made again),
+and restarting would not bring a receiver back. `?ready` is 503 also while
+the health's status is `error` (no receiver sending samples), for a monitor
+that should say so; it is not for a container's health check.
+
+The image's `HEALTHCHECK` asks for `/api/health` every 30 seconds. Docker
+only marks a container unhealthy; it does not restart it.
 
 ## Helper scripts
 
@@ -596,6 +616,38 @@ measures FST4W's (how wide it arrived: what the path did to it), for the
 WSPR tab and Analytics, at about 0.7 ms a decode, the decodes unchanged.
 `--wsprd PATH` (`WSPRD`) runs a wsprd program instead, and
 `--wsprd-args` (`WSPRD_ARGS`) gives wsprd's own flags.
+
+### wsprd on its own
+
+That decoder is also released as a program of its own, `wsprd`, in the
+[Releases](https://github.com/madpsy/ubersdr_skimmer_public/releases) tagged
+`wsprd-v...` (`wsprd-linux-x86_64`, `wsprd-linux-aarch64`,
+`wsprd-windows-x86_64.exe`): a drop-in for WSJT-X's `wsprd`, for anything
+that runs one. It takes the same options and writes the same output and
+files (stdout, `ALL_WSPR.TXT`, `wspr_spots.txt`, `hashtable.txt`, the `-c`
+file), byte for byte, checked against WSJT-X's own on every option and
+recording. Against WSJT-X's own `wsprd` (3.2.0-rc1, built with WSJT-X's
+Release flags on each machine), over six real 2-minute periods (five on
+40 m, WSJT-X's sample) with `-C 500 -o 4 -d`, the same decodes:
+
+| CPU for 6 WSPR periods | WSJT-X's wsprd | this wsprd | |
+|---|---:|---:|---:|
+| x86-64 (Ryzen 7 5700U) | 13.7 s | 1.5 s | 9.1x |
+| Raspberry Pi 5 | 19.6 s | 3.4 s | 5.7x |
+
+A period takes 0.2-0.3 s on the PC (1.7-3.0 s before), 0.5-0.7 s on the
+Pi 5 (2.5-4.2 s before). It needs nothing installed (on Linux, FFTW's
+single-precision library: `sudo apt install libfftw3-single3`), and the
+skimmer does not use it.
+
+One option more, `-n`, as an older spread build of `wsprd` had it: no search
+for a drifting signal, and each `ALL_WSPR.TXT` line ending in the signal's
+spread in Hz (`%6.3f`). `wsprd --version` gives the release it came in.
+
+```
+./wsprd-linux-x86_64 -c -C 500 -o 4 -d -f 14.0956 261011_1200.wav
+./wsprd-linux-x86_64 -n -C 500 -o 4 -d -f 14.0956 261011_1200.wav
+```
 
 ### FT8, FT4, FT2 and WSPR
 
