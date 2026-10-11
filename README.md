@@ -50,7 +50,9 @@ under the dial without a break in the audio; the squelch, the meter and the
 fixed gain go by the passband's noise, so they read alike on any receiver.
 `RADIO: "false"` turns it off, `RADIO_PASSWORD` keeps tuning to those who know
 it. The Resources tab's Sources section says what the receiver reports of
-itself, and each stream's session.
+itself, and each stream's session. Its Clock section shows the host's clock against
+NTP (checked every 64 s); more than half a second off, every tab says so at
+the top.
 
 This repository holds only what an install needs: the installer, the
 `docker-compose.yml` and the helper scripts. The program comes as the Docker
@@ -222,7 +224,7 @@ data: {"type":"spot","seq":1791639174496,"v":1,"t":1791639189,"spotter":"M9PSY",
 | `spot_type` | `CQ`, `DE`, `BEACON`, `NCDXF` or `HEARD` |
 | `wpm` / `baud` | CW's speed / RTTY's and JTTY's |
 | `locator` | the sender's own, when it sent one |
-| `dbm`, `spread_hz` | WSPR's power; FST4W's spread |
+| `dbm`, `spread_hz` | WSPR's power; WSPR's and FST4W's spread |
 | `entity`, `continent` | the sender's country and continent, by cty.dat |
 | `qrz` | QRZ's record of the call, when the skimmer has it: `call` (QRZ's, the home call), `name`, `city`, `county`, `state`, `country`, `grid`, `lat`, `lon`, `geoloc`, `license`, `qsl`, `lotw`, `eqsl`, `mqsl`, `dxcc`, `cq_zone`, `itu_zone`, `born`, `url`, `image`, `at` (when QRZ answered), and `home_only`, true when the call signs from elsewhere (`EA5/G4ABC`, `/MM`) so the place is its home station's |
 
@@ -579,7 +581,10 @@ x86-64, NEON on arm64):
 | Raspberry Pi 5 | 28.6 s | 4.9 s |
 
 About a quarter of a second a 2-minute period and band on a PC, half a second
-on a Pi 5. `--wsprd PATH` (`WSPRD`) runs a wsprd program instead, and
+on a Pi 5. Each WSPR spot also gets the signal's spread, measured as WSJT-X
+measures FST4W's (how wide it arrived: what the path did to it), for the
+WSPR tab and Analytics, at about 0.7 ms a decode, the decodes unchanged.
+`--wsprd PATH` (`WSPRD`) runs a wsprd program instead, and
 `--wsprd-args` (`WSPRD_ARGS`) gives wsprd's own flags.
 
 ### FT8, FT4, FT2 and WSPR
