@@ -111,6 +111,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `RBN` | `true` | report spots to the Reverse Beacon Network (as RBN Aggregator does); `false` turns it off. RBN needs the station's locator: without one (the receiver publishes no GPS locator and `LOCATOR` is unset) the reporter does not start, the log says so, and the skimmer runs on without it |
 | `RBN_DRY_RUN` | `false` | sign on to RBN and judge spots, but upload none |
 | `RBN_CALL` | `CALLSIGN` | the call RBN knows the skimmer by, its spots as `RBN_CALL-#` |
+| `RBN_BAD_CALLS` | `false` | `true`: send RBN no spot of a call in `./cache/BadCalls.txt` (as RBN Aggregator's "Not in BadCalls.txt"; the form under [The bad calls file](#the-bad-calls-file)), read again when edited; or a file's path in the container. The RBN tab's "Bad calls (manual)" shows the calls it held |
 | `WEB_PORT` | `6101` | the web page |
 | `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format, RTTY's spots on the next port (7301) in RTTY Skimmer Server's, JTTY's on 7302; `0` turns them all off |
 | `AGG_TELNET_PORT` | | with `RBN`, the reporter's local-user telnet port (as Aggregator's 7550) |
@@ -150,6 +151,26 @@ set `UBERSDR_PASSWORD` to its bypass password.
 
 The fetched reference lists (cty.dat, MASTER.SCP and RBN's), FFTW's wisdom and
 the RBN reporter's state are kept in `~/ubersdr/skimmer/cache`.
+
+### The bad calls file
+
+`BadCalls.txt` (with `RBN_BAD_CALLS: "true"`, `~/ubersdr/skimmer/cache/BadCalls.txt`)
+is a plain text file, one callsign a line:
+
+```
+# busted calls the skimmer keeps hearing
+T2X
+E5ABC
+DL1ABC/P
+```
+
+- A line is a whole call, matched exactly: no wildcards, prefixes or patterns.
+  `DL1ABC` holds `DL1ABC` only; `DL1ABC/P` needs its own line.
+- Upper or lower case alike; spaces around the call are ignored.
+- Blank lines and lines starting with `#` are skipped.
+- Only the spotted call is checked, and a beacon in the list is held too.
+- Saved changes are read within 10 s; no restart is needed. A missing file
+  holds nothing, and the RBN tab says it cannot read it.
 
 ## Ports
 
@@ -1010,6 +1031,10 @@ output:
   --no-patt3ch       with --rbn, also send calls that fit no shape in RBN's
                      patt3ch.lst (with QRZ lookups, a call QRZ knows is sent
                      regardless)
+  --rbn-bad-calls [FILE]
+                     with --rbn, send no spot of a call in FILE (default
+                     BadCalls.txt), one call a line, as RBN Aggregator's
+                     "Not in BadCalls.txt"; read again when it changes
   --wsjtx PORT[:CAL] with --rbn, also spot FT8/FT4 CQs from WSJT-X on this UDP
                      port (calibration factor CAL, default 1); repeatable
   --agg-telnet PORT  with --rbn, the reporter's local-user telnet port (as

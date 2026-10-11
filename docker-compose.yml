@@ -48,6 +48,7 @@ services:
       # LOCATOR: ""           # 6-character locator (default: the receiver's)
       # VALIDATION: "normal"  # relaxed, normal or strict
       # RBN_DRY_RUN: "false"  # sign on to RBN and judge spots, but upload none
+      # RBN_BAD_CALLS: "false"  # "true": send RBN no spot of a call in ./cache/BadCalls.txt (one call a line)
       # WEB_PORT: "6101"      # the web page, proxied by UberSDR at /addon/skimmer/
       # TELNET_PORT: "7300"   # DX-cluster telnet (CW Skimmer Server's format), RTTY's on the next port, JTTY's the one after; 0 = off
       # AGG_TELNET_PORT: ""   # with RBN, the reporter's local-user telnet (e.g. 7550)
