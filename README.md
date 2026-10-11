@@ -371,6 +371,9 @@ ubersdr-skimmer-linux-x86_64 --url http://sdr.example.com:8080 --bands 40,30,20 
 
 `--mode` is `iq48`, `iq96` (default), `iq192` or `iq384`. Each band is a
 session on the receiver; `--password` takes a password or the bypass password.
+A band's streams start 2 kHz below it, with the rest of their width above,
+where RTTY and the digital modes are, rather than centred (the same for
+`--ka9q`; `--centre-streams` centres them).
 With `--web`, the Radio tab is a 192 kHz session of its own, opened while a
 page has it open (`--no-radio` for none, `--radio-password PW` to keep tuning
 to those who know it), tuned within the range the receiver advertises.
@@ -410,6 +413,11 @@ ubersdr-skimmer-windows-x86_64.exe --hpsdr 192.168.1.50 --mode iq96 --bands 40,3
 - `--hpsdr-protocol 1` or `2` insists on a protocol. `--hpsdr-att DB` fixes
   the step attenuator; by default it moves with ADC overloads, as HermesIntf
   moves it (on a Hermes, ANAN or Angelia, Orion, Orion2 or Saturn).
+- Each band's streams are centred on what they skim, because a radio's
+  decimating filters droop near the edges of its passband. `--low-streams`
+  after an `--hpsdr` places them as an UberSDR's are instead: 2 kHz below
+  the band, with the rest of their width above it for RTTY and the digital
+  modes. The bottom of each band, the busiest CW, then sits near the edge.
 - A radio busy with another program is left to it. If the radio goes quiet,
   it is started again.
 - On Windows, `--cwsl` after an `--hpsdr` also shares that radio's receivers
@@ -500,6 +508,8 @@ ubersdr-skimmer-windows-x86_64.exe --driver C:\Radios\Qs1rIntf.dll --mode iq192 
   CWSL_Tee.dll are not needed.
 - Each band of `--bands` takes one of the radio's receivers. The skimmer
   asks for no more than the radio has; if the bands need more, it says so.
+- Each band's streams are centred on what they skim; `--low-streams` after a
+  `--driver` places them 2 kHz below the band instead, as with `--hpsdr`.
 - `--mode` is `iq48`, `iq96` (default) or `iq192`.
 
 ### From a recording (`--input`)
@@ -674,6 +684,15 @@ input:
                      630 m) are never in all and never skimmed, CW or RTTY:
                      named, a stream each covers the whole band, for its
                      WSPR and FST4W (--wspr) and the RF tab
+  --centre-streams   centre each band's streams on what they skim. By default
+                     an UberSDR's and radiod's start 2 kHz below the band,
+                     the rest of their width above it, for RTTY and the
+                     digital modes there (an HPSDR radio's or a driver's are
+                     centred unless --low-streams follows it: their filters
+                     droop at the edges)
+  --low-streams      after an --hpsdr or --driver: its streams placed as an
+                     UberSDR's are, 2 kHz below each band and the rest above,
+                     the bottom of the band near the edge of its passband
   --driver DLL       a radio, through its CW Skimmer Server driver
                      (Qs1rIntf.dll, HermesIntf.dll, ...: the DLL CWSL_Tee.cfg
                      names), as Skimmer Server drives it: one receiver per
