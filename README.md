@@ -7,9 +7,9 @@ Server does: on a DX-cluster telnet port, and optionally to the Reverse
 Beacon Network as RBN Aggregator does (on by default) and to PSK Reporter
 (off by default). A live web page shows it at work.
 
-> **WSJT-X improved, only for FT8, FT4, FT2 and FST4W.** WSPR needs nothing
-> installed: WSJT-X's `wsprd` is built in (see
-> [WSPR, built in](#wspr-built-in)). FT8, FT4, FT2 and FST4W are decoded with
+> **WSJT-X improved, only for FT8, FT4 and FT2.** WSPR and FST4W need nothing
+> installed: WSJT-X's `wsprd` and jt9's FST4W decoder are built in (see
+> [WSPR, built in](#wspr-built-in)). FT8, FT4 and FT2 are decoded with
 > WSJT-X's own `jt9`: running the binaries yourself, install
 > [WSJT-X improved](https://sourceforge.net/projects/wsjt-x-improved/), not
 > the normal WSJT-X, as only improved's `jt9` decodes FT2. The container
@@ -39,7 +39,8 @@ running:
   grids.
 - **WSPR and FST4W** (off by default): every WSPR and FST4W mode, WSPR by a
   built-in WSJT-X `wsprd` (the same decodes, about a tenth of the CPU on
-  x86-64 and a sixth on a Pi 5) and FST4W by `jt9`, shown on the web page's
+  x86-64 and a sixth on a Pi 5) and FST4W by jt9's FST4W decoder, built in
+  too (the same spots, about a seventh of jt9's CPU), shown on the web page's
   WSPR tab; uploaded to wsprnet.org, and to PSK Reporter.
 
 The web page also has a **Radio** tab: a WebSDR of the receiver, on a 192 kHz
@@ -133,13 +134,15 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `FT8_DEPTH`, `FT4_DEPTH`, `FT2_DEPTH` | `normal` | jt9's depth: `fast`, `normal` or `deep` |
 | `JT9` | `/usr/bin/jt9` | the jt9 program (the image's own, or one mounted in) |
 | `JS8` | | bands to decode JS8 on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with a JS8 dial (default none): Normal, Fast, Turbo and Slow, the calls heard to PSK Reporter (with `PSKREPORTER`) with their grids, never RBN; the web page's JS8 tab. Each band must be among `BANDS`. Needs nothing in the container |
-| `WSPR` | | bands to decode WSPR and FST4W on, e.g. `20,40,80eu` or `all`, or `true` for every band of `BANDS` with a WSPR dial (default none; `80` is both 80 m dials when the stream holds 80eu, `60` likewise), with WSJT-X's `wsprd`, built in (and `jt9` for FST4W); the web page's WSPR tab. The image has WSJT-X improved 3.1.0's `jt9` (and its `wsprd`, for `WSPRD`) |
+| `WSPR` | | bands to decode WSPR and FST4W on, e.g. `20,40,80eu` or `all` (every dial but 22 and 8 m's: those by name, with a stream's centre in `BANDS`, e.g. `13.5551`), or `true` for every band of `BANDS` with a WSPR dial (default none; `80` is both 80 m dials when the stream holds 80eu, `60` likewise), with WSJT-X's `wsprd` and jt9's FST4W decoder, built in; the web page's WSPR tab. The image has WSJT-X improved 3.1.0's `jt9` (and its `wsprd`, for `WSPRD`) |
 | `WSPR_MODES` | `W2,F2,F5`, and `W2,F2,F5,F15,F30` on 2200 m and 630 m | `W2` (WSPR), `W15` (WSPR-15), `F2`, `F5`, `F15`, `F30` (FST4W-120 to -1800) or `all`; a band's own after a space, e.g. `W2,F2,F5 2200:F15,F30 630:all`: a band named takes its own, the list without a band every other (2200 m and 630 m too). Each band keeps only the slice of audio the decoders read, about 11 MB a band with all |
 | `WSPR_DEPTH` | `deep` | `fast`, `normal` or `deep` (wsprd `-qB`, `-C 500 -o 4`, `-C 500 -o 4 -d`) |
 | `WSPR_NOISE_CAL` | | each band's noise is measured every 2 minutes in dBFS/Hz; dB added to make it dBm/Hz, measured for your receiver: one for every band (`-130`) or a band's own (`-130 20:-128.5`) |
-| `WSPR_THREADS` | `4` | WSPR and FST4W decoders run at once (half the cores if fewer: 2 on a Pi 5); a band and mode one at a time, FST4W-1800 one at a time (jt9 takes about 1.1 GB for it) |
+| `WSPR_THREADS` | `4` | WSPR and FST4W decoders run at once (half the cores if fewer: 2 on a Pi 5); a band and mode one at a time (a band's FST4W modes one at a time), FST4W-1800 one at a time (about 0.5 GB) |
 | `WSPRD` | | a wsprd program to decode WSPR with instead of the built-in one (the same decodes), e.g. `/usr/bin/wsprd` (the image's own, or one mounted in) |
 | `WSPRD_ARGS` | | wsprd's flags in place of `WSPR_DEPTH`'s, e.g. `-C 500 -o 3 -d`; not `-a`, `-c`, `-0`, `-f`, `-m` or a file |
+| `FST4W_JT9` | `false` | `true`: FST4W by the `jt9` program (`JT9`) instead of the built-in decoder |
+| `FST4W_SPREAD` | `fast` | the built-in FST4W decoder's spread: `fast` (within 0.0001 Hz of jt9's), `exact` (jt9's) or `off` |
 | `WSPRNET` | `false` | `true` uploads WSPR and FST4W spots to [wsprnet.org](https://wsprnet.org) as `CALLSIGN` at `LOCATOR`; spots wait in `/dev/shm` until wsprnet takes them. If UberSDR already uploads this receiver's WSPR, leave this off. The WSPRnet tab also shows [wspr.live](https://wspr.live)'s ranking of every reporter (yesterday, the last 24 hours, today), fetched a minute after start and hourly |
 | `WSPRNET_CALL` | `CALLSIGN` | the call uploaded as to wsprnet |
 | `STATIC_FILTER` | `full` | static crashes (lightning far off, lifting the whole band for a few ms several times a second): `full` starts no track, and keeps none running, on a signal over the threshold only because a crash lifted the band; `starts` starts none so but lets crashes keep running tracks; `off` tracks them as any signal. The web page shows how often they come (the noise floor drawn bolder, and the stream's "static" figure) |
@@ -673,6 +676,25 @@ WSPR tab and Analytics, at about 0.7 ms a decode, the decodes unchanged.
 `--wsprd PATH` (`WSPRD`) runs a wsprd program instead, and
 `--wsprd-args` (`WSPRD_ARGS`) gives wsprd's own flags.
 
+FST4W (FST4W-120 to -1800) likewise: jt9's FST4W decoder in C++, the same
+spots as WSJT-X's `jt9 --fst4w` to the character (checked on 86 generated
+and real periods; every field of its output to the bit on x86-64, with the
+exact spread), with no program started:
+
+| CPU for 9 FST4W periods | WSJT-X's jt9 | built in |
+|---|---:|---:|
+| x86-64 (Ryzen 7 5700U) | 32.8 s | 4.4 s |
+| Raspberry Pi 5 | 56.4 s | 8.5 s |
+
+An FST4W-1800 period takes about 0.5 GB while it decodes (jt9 1.1 GB). Each
+band keeps one hash table for all its FST4W modes, kept across restarts, so
+a call sent in full on one resolves its hashed (`<CALL> GRID6`) messages on
+all of them; such a message carries no power, so its spot takes the call's
+last heard on the band, and goes to wsprnet only with one. The spread is
+measured a cheaper way by default, within 0.0001 Hz of jt9's
+(`--fst4w-spread exact` for jt9's own, `off` for none). `--fst4w-jt9`
+(`FST4W_JT9`) runs the `jt9` program instead.
+
 ### wsprd on its own
 
 This decoder is also a program of its own, a drop-in for WSJT-X's `wsprd`
@@ -682,11 +704,11 @@ its source. The skimmer does not need it.
 
 ### FT8, FT4, FT2 and WSPR
 
-These need WSJT-X's `jt9`, for FT8, FT4, FT2 and FST4W (`apt install wsjtx`
+These need WSJT-X's `jt9`, for FT8, FT4 and FT2 (`apt install wsjtx`
 has it, in `/usr/bin`; on Windows, WSJT-X's installer puts it in
-`C:\WSJT\wsjtx\bin`, where it is looked for). WSPR needs nothing: WSJT-X's
-`wsprd` is built in, the same decodes in memory; `--wsprd PATH` runs the
-program instead, as before. FT2
+`C:\WSJT\wsjtx\bin`, where it is looked for). WSPR and FST4W need nothing:
+WSJT-X's `wsprd` and jt9's FST4W decoder are built in, the same decodes in
+memory; `--wsprd PATH` and `--fst4w-jt9` run the programs instead. FT2
 needs [WSJT-X improved](https://sourceforge.net/projects/wsjt-x-improved/)
 (WSJT-X's own has no FT2); tested with 3.1.0 improved AL_PLUS on Linux and
 Windows. Each band asked for must
@@ -704,8 +726,10 @@ program a mode needs.
 FT8, FT4 and FT2 go to PSK Reporter with `--pskreporter` and, FT8's and
 FT4's CQs and roger reports, to RBN with `--rbn`. WSPR and FST4W go to
 wsprnet.org with `--wsprnet` and to PSK Reporter with `--pskreporter`, never
-to RBN. 2200, 630, 22 and 8 m WSPR need a stream given by its centre in
-`--bands`, in kHz (`475` for 630 m). Every option is below.
+to RBN, and only for calls cty.dat knows (the rest are shown, and listed in
+Analytics' WSPR section, but not sent). 2200 and 630 m WSPR need their band named in `--bands` (`2200`,
+`630`), 22 and 8 m a stream given by its centre (`13.5551`, `40.6812`, in
+MHz), and are not among `--wspr all`'s. Every option is below.
 
 ### JS8
 
@@ -957,15 +981,18 @@ spots:
                      grids; the web page's JS8 tab shows each band's
                      activity and messages. Never to RBN or telnet
   --wspr [BANDS]     decode WSPR and FST4W on these bands' WSPR dials (20,40,
-                     80eu, all; default none; with no list, every band of
+                     80eu, all: every dial but 22 and 8 m's, by name only;
+                     default none; with no list, every band of
                      --bands with a WSPR dial). 80 is 80 m's dials both,
                      60 60 m's, the second (80eu, 60eu) when the band's
                      streams hold it, else left out, said. Each whole
                      transmission period cut by the clock and decoded by
-                     WSJT-X's wsprd, built in (or --wsprd), or jt9 (--jt9,
-                     FST4W); each band's streams cover its dial and
+                     WSJT-X's decoders built in: wsprd's (or --wsprd), and
+                     jt9's FST4W (or --fst4w-jt9); each band's streams
+                     cover its dial and
                      0-2.4 kHz above it (22 and 8 m: give a stream's centre
-                     in --bands). Spots to the web page's WSPR tab, PSK
+                     in --bands, e.g. 13.5551 or 40.6812, in MHz). Spots to
+                     the web page's WSPR tab, PSK
                      Reporter (with a locator), and wsprnet.org with
                      --wsprnet
   --wspr-modes M     the modes decoded: W2 (WSPR), W15 (WSPR-15), F2, F5, F15,
@@ -993,19 +1020,30 @@ spots:
                      --wspr-modes gives them, "-130 20:-128.5"
   --wspr-threads N   WSPR and FST4W decoders run at once (1-64; default 4,
                      or half the cores if fewer); a band and mode one at a time,
-                     FST4W-1800 one at a time (jt9 takes about 1.1 GB for it)
+                     FST4W-1800 one at a time (about 0.5 GB built in, 1.1 GB
+                     with jt9), a band's FST4W modes one at a time built in
   --wsprd PATH       WSPR by a wsprd program, each period written as a WAV
                      file for it (/usr/bin/wsprd; on Windows
                      C:\WSJT\wsjtx\bin\wsprd.exe, where WSJT-X installs it),
                      not the built-in wsprd (the default: the same decodes,
                      in memory, no program or files)
+  --fst4w-jt9        FST4W by the jt9 program (--jt9), each period written as
+                     a WAV file for it, not the built-in FST4W decoder (the
+                     default: jt9's decodes, in memory, no program or files;
+                     a band's FST4W modes share one hash table, so a call
+                     heard in one resolves its hashed messages in all)
+  --fst4w-spread S   the built-in FST4W decoder's spread (the signal's
+                     width, w50): fast (default: within 0.0001 Hz of jt9's,
+                     several times cheaper), exact (jt9's to the bit) or off
+                     (none measured)
   --wsprd-args ARGS  wsprd's flags in place of --wspr-depth's, built in or
                      not, "-C 500 -o 3 -d" (see wsprd's own usage); not -a,
                      -c, -0 or a file, nor -f or -m (each band's dial and
                      mode's)
   --wsprnet          upload WSPR and FST4W spots to wsprnet.org in MEPT
                      uploads (one a cycle, one spot a call a band, our
-                     own call left out), as --wsprnet-call at the station's
+                     own call and calls cty.dat does not know left out), as
+                     --wsprnet-call at the station's
                      locator; spots wait in /dev/shm (on Windows the
                      temporary directory) until wsprnet says it took them.
                      The WSPRnet tab also shows wspr.live's ranking of
@@ -1015,7 +1053,8 @@ spots:
                      the call uploaded as to wsprnet (default --call)
   --wsprnet-server URL
                      where uploads go (default http://wsprnet.org/meptspots.php)
-  --jt9 PATH         the jt9 program FT8, FT4, FT2 and FST4W are decoded by
+  --jt9 PATH         the jt9 program FT8, FT4, FT2 (and FST4W, --fst4w-jt9)
+                     are decoded by
                      (default /usr/bin/jt9; on Windows
                      C:\WSJT\wsjtx\bin\jt9.exe)
   --no-preroll       a new track reads from when it was found, as before:
