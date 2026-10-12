@@ -118,6 +118,8 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `PSKREPORTER` | `false` | `true` reports spots to [PSK Reporter](https://pskreporter.info), as UberSDR reports its CW skimmer's: as `CALLSIGN` at `LOCATOR`, each call at most once a band in 2 minutes. JTTY's calls go too, as JTTY. If UberSDR already uploads its CW spots to PSKReporter (with `cwskimmer.yaml` pointing here), leave this off, or each spot goes twice |
 | `PSKREPORTER_CALL` | `CALLSIGN` | the call reported as to PSK Reporter |
 | `PSKREPORTER_ANTENNA` | | the antenna, as PSK Reporter shows it |
+| `WSJTX_OUT` | | `HOST:PORT`, e.g. `192.168.1.20:2237`: the FT8, FT4, FT2, WSPR and FST4W decodes sent there as WSJT-X sends its own over UDP, for GridTracker, JTAlert and the like (see [Decodes to WSJT-X programs](#decodes-to-wsjt-x-programs)). Give the address of the PC the program runs on. Unset: off |
+| `WSJTX_OUT_ID` | `UberSDR Skimmer` | the instance's Id, as those programs show it |
 | `QRZ_USER`, `QRZ_PASSWORD` | | a [QRZ.com](https://www.qrz.com) login with an XML Data subscription: each call spotted is looked up (10,000 kept, the least recently spotted forgotten first), placing it on the web page's Map tab and giving its grid square to PSK Reporter. Checked at startup: if QRZ refuses it, the log and the Map tab say so and the skimmer runs on without. Not needed as an addon: the calls are asked of UberSDR's own lookups (its `lookup_services`, with `skimmer` among its `trusted_containers`), these used only if UberSDR serves none. Commented out in the compose file: uncomment and set them |
 | `QRZ_VALIDATE` | `false` | `true`, with QRZ lookups (UberSDR's, or `QRZ_USER` and `QRZ_PASSWORD`): spot only calls QRZ knows. A call QRZ does not know is not spotted (and asked again after a day); a spot waits up to 10 s for QRZ's answer. When QRZ cannot answer (down, an error, too slow) the spot goes out as without it, and the call is asked again at its next spot. Beacons are not checked |
 | `FREQ_CALIBRATION` | `1` | every frequency is multiplied by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's RBN tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it |
@@ -180,6 +182,32 @@ DL1ABC/P
 | 7300 | DX-cluster telnet, `skimmer:7300` on the Docker network. Not published on the host; uncomment `ports:` in the compose file to publish it (the dxcluster addon may already use 7300 there) |
 | 7301 | RTTY's spots, as RTTY Skimmer Server's telnet, `skimmer:7301`. Not published either |
 | 7302 | JTTY's spots, in the same lines, `skimmer:7302`. Not published either |
+
+## Decodes to WSJT-X programs
+
+`--wsjtx-out HOST:PORT` (`WSJTX_OUT` in the compose file) sends every FT8,
+FT4, FT2, WSPR and FST4W decode to a program that takes WSJT-X's UDP messages,
+such as GridTracker or JTAlert, byte for byte as WSJT-X sends its own to its
+"UDP Server". WSJT-X's port is 2237. A multicast group (e.g.
+`239.255.0.1:2237`) works too; its TTL is 1, as WSJT-X's, unless you set
+`--wsjtx-out-ttl`.
+
+- The skimmer is one instance, Id `UberSDR Skimmer` (`--wsjtx-out-id`), for
+  every band. Each dial's decodes come between two Status messages, one
+  "decoding" and one not, as WSJT-X sends them around a decode. That Status
+  carries the dial, the mode and the band (as the configuration name).
+- FT8, FT4 and FT2 decodes go as Decode messages, with the decode line's
+  marker as the mode (`~` FT8, `+` FT4) and the message text as WSJT-X gives
+  it. FST4W decodes go as Decode messages too (marker `` ` ``), and WSPR
+  decodes as WSPRDecode messages.
+- JTTY, JS8, CW and RTTY are not sent, because WSJT-X sends none of them.
+- A Heartbeat goes every 15 s, and a Close when the skimmer stops.
+- The program's replies are read only for the protocol's schema number.
+  Commands such as Reply and Halt Tx do nothing here.
+- A host that does not resolve at startup is tried again every 15 s, and the
+  log says so once. Startup logs where the decodes go. Nothing is logged
+  when the program on the other end is closed or not running: the decodes
+  just go unheard until it is back.
 
 ## The feed: every spot and the skimmer's health, for your own program
 
@@ -246,8 +274,15 @@ data: {"type":"spot","seq":1791639174496,"v":1,"t":1791639189,"spotter":"M9PSY",
 | `wpm` / `baud` | CW's speed / RTTY's and JTTY's |
 | `locator` | the sender's own, when it sent one |
 | `dbm`, `spread_hz` | WSPR's power; WSPR's and FST4W's spread |
+| `message`, `dt` | FT's and WSPR's decoded text, as the decoder printed it (FT's the call's strongest decode in the cycle), and its time offset, s |
+| `drift` | WSPR's drift, Hz a minute (not FST4W's) |
+| `dial_hz` | FT's, WSPR's and JS8's dial, Hz: `freq_hz` less it is the audio offset |
 | `entity`, `continent` | the sender's country and continent, by cty.dat |
-| `qrz` | QRZ's record of the call, when the skimmer has it: `call` (QRZ's, the home call), `name`, `city`, `county`, `state`, `country`, `grid`, `lat`, `lon`, `geoloc`, `license`, `qsl`, `lotw`, `eqsl`, `mqsl`, `dxcc`, `cq_zone`, `itu_zone`, `born`, `url`, `image`, `at` (when QRZ answered), and `home_only`, true when the call signs from elsewhere (`EA5/G4ABC`, `/MM`) so the place is its home station's |
+| `country_code` | its country's ISO 3166-1 alpha-2 code, when it has one |
+| `cq_zone`, `itu_zone`, `utc_offset` | cty.dat's zones and local time's offset from UTC (hours, east positive) |
+| `lat`, `lon`, `loc_source` | where it is: its own locator (`locator`), else QRZ's position where it applies (`qrz`), else its country's middle (`cty`) |
+| `km`, `bearing` | how far and which way from the receiver (UberSDR's GPS position, else the skimmer's locator) |
+| `qrz` | QRZ's record of the call, when the skimmer has it: `call` (QRZ's, the home call), `name`, `city`, `county`, `state`, `country`, `grid`, `lat`, `lon`, `geoloc`, `tz_iana` (the time zone there, UberSDR's), `license`, `qsl`, `lotw`, `eqsl`, `mqsl`, `dxcc`, `cq_zone`, `itu_zone`, `born`, `url`, `image`, `at` (when QRZ answered), and `home_only`, true when the call signs from elsewhere (`EA5/G4ABC`, `/MM`) so the place is its home station's |
 
 Fields are left out where they do not apply. `qrz` comes from the skimmer's
 QRZ lookups (UberSDR's, or `--qrz-user`), never asked for by the feed: CW,
@@ -1039,6 +1074,16 @@ output:
                      port (calibration factor CAL, default 1); repeatable
   --agg-telnet PORT  with --rbn, the reporter's local-user telnet port (as
                      Aggregator's 7550: the spots sent to RBN, sh/dx)
+  --wsjtx-out HOST:PORT
+                     send the FT8, FT4, FT2, WSPR and FST4W decodes on as
+                     WSJT-X sends its own to its UDP server, for GridTracker,
+                     JTAlert and the like (WSJT-X's port is 2237; a
+                     multicast group too; IPv6 as [ADDRESS]:PORT):
+                     Heartbeat, Status around each dial's decodes, Decode,
+                     WSPRDecode. JTTY's, JS8's, CW's and RTTY's are not
+                     sent: WSJT-X sends none. Off by default
+  --wsjtx-out-id ID  the instance's Id there (default "UberSDR Skimmer")
+  --wsjtx-out-ttl N  a multicast group's TTL (default 1, as WSJT-X)
   --pskreporter      report spots to PSK Reporter (pskreporter.info) as
                      UberSDR reports its CW Skimmer's: every spot, as CW, at
                      most once a call and band in 2 minutes, in a packet every

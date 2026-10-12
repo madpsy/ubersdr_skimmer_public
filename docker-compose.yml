@@ -58,6 +58,9 @@ services:
       # MAX_RTTY: "100"      # RTTY signals each band decodes at once (its streams share them)
       # PSKREPORTER_ANTENNA: ""  # the antenna, as PSK Reporter shows it
       # STATIC_FILTER: "full"  # static crashes: "full" start and keep no track, "starts" start none, "off" track as any signal
+      # WSJTX_OUT: ""         # HOST:PORT, e.g. "192.168.1.20:2237": FT8/FT4/FT2, WSPR and FST4W decodes sent there
+      #                       #   as WSJT-X sends its own over UDP (GridTracker, JTAlert...); give the PC's own address
+      # WSJTX_OUT_ID: ""      # the instance's Id there (default "UberSDR Skimmer")
       # QRZ_USER: ""          # QRZ.com login (XML Data subscription), only if UberSDR's own lookups
       # QRZ_PASSWORD: ""      #   are off: calls are looked up through UberSDR's lookup_services
       # QRZ_VALIDATE: "false"  # "true": spot only calls QRZ knows (spots still go when QRZ cannot answer)
