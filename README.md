@@ -1023,8 +1023,9 @@ spots:
                      cycle to the web page's FT8 tab
   --ft8-depth D      the decoding depth: fast, normal (default) or deep
   --ft8-threads N    FT8 decodes at once, every dial's together (1-64;
-                     default: every dial at once); a cycle waits its turn,
-                     dropped if not decoded in two cycles. Built in only
+                     default half the cores, at least 2, at most 4); a cycle
+                     waits its turn, dropped if not decoded in two cycles.
+                     Built in only
   --ft8-jt9          FT8 by the jt9 program (--jt9), one running a dial, not
                      the built-in decoder (the default: jt9's decodes, on a
                      thread a dial, no program or shared memory)
@@ -1090,13 +1091,14 @@ spots:
                      its IQ. DB, measured for your receiver, is added to make
                      it dBm/Hz: one for every band, or a band's own as
                      --wspr-modes gives them, "-130 20:-128.5"
-  --wspr-threads N   WSPR decoders run at once (1-64; default 4, or half
-                     the cores if fewer); a band and mode one at a time
+  --wspr-threads N   WSPR decoders run at once (1-64; default half the
+                     cores, at least 2, at most 4); a band and mode one at a
+                     time
   --fst4w-threads N  FST4W decoders run at once, a pool apart from WSPR's
-                     (1-64; default 4, or half the cores if fewer); a band and
-                     mode one at a time, FST4W-1800 one at a time (about 0.5
-                     GB built in, 1.1 GB with jt9), a band's FST4W modes one
-                     at a time built in
+                     (1-64; default half the cores, at least 2, at most 4);
+                     a band and mode one at a time, FST4W-1800 one at a
+                     time (about 0.5 GB built in, 1.1 GB with jt9), a band's
+                     FST4W modes one at a time built in
   --wsprd PATH       WSPR by a wsprd program, each period written as a WAV
                      file for it (/usr/bin/wsprd; on Windows
                      C:\WSJT\wsjtx\bin\wsprd.exe, where WSJT-X installs it),

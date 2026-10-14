@@ -41,12 +41,13 @@ services:
       # Empty: the receiver's CW skimmer callsign, else its callsign.
       CALLSIGN: ""
       # Decoders run at once, each mode's own: WSPR's, FST4W's, and each FT
-      # mode's (every dial's together; an FT cycle waits its turn)
-      WSPR_THREADS: "4"
-      FST4W_THREADS: "4"
-      FT8_THREADS: "4"
-      FT4_THREADS: "4"
-      FT2_THREADS: "4"
+      # mode's (every dial's together; an FT cycle waits its turn); empty:
+      # half the cores, at least 2, at most 4
+      WSPR_THREADS: ""
+      FST4W_THREADS: ""
+      FT8_THREADS: ""
+      FT4_THREADS: ""
+      FT2_THREADS: ""
       # FT decoding depth: fast, normal or deep
       FT8_DEPTH: "deep"
       FT4_DEPTH: "deep"
