@@ -77,6 +77,7 @@ services:
       # QRZ_VALIDATE: "false"  # "true": spot only calls QRZ knows (spots still go when QRZ cannot answer)
       # RADIO: "true"         # "false": no Radio tab (a 192 kHz session of its own while a page has it open)
       # RADIO_PASSWORD: ""    # the Radio tab tuned only by a page that gives this (anyone may watch)
+      # FETCH: "true"         # "false": never download cty.dat, MASTER.SCP and the like; the built-in copies are used
       # EXTRA_ARGS: ""        # anything else (see: docker exec skimmer ubersdr-skimmer --help)
     volumes:
       # Fetched cty.dat/MASTER.SCP/RBN lists, FFTW wisdom and RBN state

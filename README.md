@@ -105,6 +105,10 @@ port: 7300
 
 Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 `./restart.sh` after changing them. Left unset, each takes the default.
+The web page's Config tab shows the configuration the skimmer is running
+with, each setting beside its variable and option (passwords only as set or
+not): the receiver or radios, every stream's centre, edges and width, what
+each skims and decodes, the decoders' depths and threads, and the reporters.
 
 | Variable | Default | |
 |---|---|---|
@@ -160,6 +164,7 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `STATIC_FILTER` | `full` | static crashes (lightning far off, lifting the whole band for a few ms several times a second): `full` starts no track, and keeps none running, on a signal over the threshold only because a crash lifted the band; `starts` starts none so but lets crashes keep running tracks; `off` tracks them as any signal. The web page shows how often they come (the noise floor drawn bolder, and the stream's "static" figure) |
 | `RADIO` | `true` | the web page's Radio tab: a 192 kHz session of its own on the receiver, opened while a page has the tab open and closed 10 s after the last leaves. `false` turns it off |
 | `RADIO_PASSWORD` | | the Radio tab tuned only by a page that gives this; anyone may still watch its spectrum. Unset: anyone may tune it |
+| `FETCH` | `true` | download the latest reference files (cty.dat, MASTER.SCP, the cluster's calls, RBN's bcn.csv and patt3ch.lst) at start and as they are due. `false`: never; the copies built into the program are used |
 | `EXTRA_ARGS` | | any other option (all of them under [Every option](#every-option)) |
 
 Each band is its own session on the receiver. UberSDR's usual configuration
@@ -167,7 +172,11 @@ lets addons on its Docker network past the session limits; if yours does not,
 set `UBERSDR_PASSWORD` to its bypass password.
 
 The fetched reference lists (cty.dat, MASTER.SCP and RBN's), FFTW's wisdom and
-the RBN reporter's state are kept in `~/ubersdr/skimmer/cache`.
+the RBN reporter's state are kept in `~/ubersdr/skimmer/cache`. Every
+reference list is also built into the program (the latest there was when it
+was built), so it has them before, or without, any download; the web page's
+Reference files and Config tabs say which copy is in use for each: fetched
+online, built in or a local file.
 
 ### The bad calls file
 
@@ -430,7 +439,8 @@ Logs: `docker logs -f skimmer`.
 ## Running the program yourself: every source of IQ
 
 Without Docker, the skimmer is one file that needs nothing installed beside
-it. Download it from
+it, its reference files (cty.dat, MASTER.SCP and the like) included: built
+in, and replaced by the latest downloaded unless `--no-fetch`. Download it from
 [Releases](https://github.com/madpsy/ubersdr_skimmer_public/releases/latest):
 `ubersdr-skimmer-linux-x86_64`, `ubersdr-skimmer-linux-aarch64` (Raspberry Pi
 and other 64-bit ARM) or `ubersdr-skimmer-windows-x86_64.exe`. It takes its IQ
@@ -1135,12 +1145,14 @@ spots:
                      signal. The web page shows how often they come
   --cty FILE         cty.dat (default: live, the one fetched from AD1C's
                      country files at start and weekly, else the one found
-                     beside the program)
+                     beside the program, else the one built in)
   --scp FILE         MASTER.SCP (default: live, the one fetched from Super
                      Check Partial at start and daily, else the one found
-                     beside the program)
-  --no-fetch         live, do not fetch cty.dat, MASTER.SCP or
-                     cluster-cw-calls.txt; use the ones beside the program
+                     beside the program, else the one built in)
+  --no-fetch         live, do not fetch cty.dat, MASTER.SCP,
+                     cluster-cw-calls.txt, bcn.csv or patt3ch.lst (nor the
+                     RBN reporter); use the ones beside the program, else the
+                     ones built in (the latest there were at the build)
   --version          print the version and exit
   --clear-cache      first empty ~/.cache/ubersdr-skimmer (the fetched lists
                      and FFTW wisdom; the RBN fingerprint is kept), so all
@@ -1261,7 +1273,8 @@ decoder:
                      line, that the decoder expects beside those in
                      MASTER.SCP (default: live, the one fetched from
                      ubersdr.org at start and weekly, else
-                     cluster-cw-calls.txt beside MASTER.SCP)
+                     cluster-cw-calls.txt beside MASTER.SCP, else the one
+                     built in)
   --dc-guard         blank the window centre (only for hardware with a DC spike)
 ```
 <!-- /options -->
