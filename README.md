@@ -7,14 +7,16 @@ Server does: on a DX-cluster telnet port, and optionally to the Reverse
 Beacon Network as RBN Aggregator does (on by default) and to PSK Reporter
 (off by default). A live web page shows it at work.
 
-> **WSJT-X improved, only for FT4 and FT2.** FT8, WSPR and FST4W need nothing
-> installed: WSJT-X's FT8 decoder, `wsprd` and jt9's FST4W decoder are built
-> in (see [WSPR, built in](#wspr-built-in)). FT4 and FT2 are decoded with
-> WSJT-X's own `jt9`: running the binaries yourself, install
-> [WSJT-X improved](https://sourceforge.net/projects/wsjt-x-improved/), not
-> the normal WSJT-X, as only improved's `jt9` decodes FT2. The container
-> already has it (WSJT-X improved 3.1.0's `jt9`): nothing to install for the
-> addon.
+> **No WSJT-X needed.** FT8, FT4, FT2, WSPR and FST4W need nothing
+> installed: WSJT-X's FT8 and FT4 decoders, WSJT-X improved's FT2,
+> `wsprd` and jt9's FST4W decoder are built in (see
+> [WSPR, built in](#wspr-built-in) and
+> [FT8, FT4 and FT2, built in](#ft8-ft4-and-ft2-built-in)). Only the
+> options that run WSJT-X's `jt9` program instead (`--ft8-jt9`,
+> `--ft4-jt9`, `--ft2-jt9`, `--fst4w-jt9`) need it installed, and for FT2
+> it must be [WSJT-X improved](https://sourceforge.net/projects/wsjt-x-improved/)'s
+> (the normal WSJT-X has no FT2). The container has WSJT-X improved
+> 3.1.0's `jt9` for them.
 
 It reads more than CW, and `CW: "false"` turns CW off and leaves the rest
 running:
@@ -28,9 +30,12 @@ running:
   own receiver. Each signal's messages show live on the web page's JTTY tab,
   with the calls heard and who they worked; the calls go to PSK Reporter when
   that is on and to telnet port 7302 (not to RBN). `JTTY: "false"` turns it off.
-- **FT8, FT4 and FT2** (off by default; Linux): decoded on the bands asked
-  for, FT8 by WSJT-X's FT8 decoder built in (the same decodes as its `jt9`,
-  about a third of the CPU on x86-64), FT4 and FT2 by WSJT-X's own `jt9`;
+- **FT8, FT4 and FT2** (off by default): decoded on the bands asked
+  for by WSJT-X's FT8 and FT4 decoders and WSJT-X improved's FT2, built in
+  (FT8 and FT4 the same decodes as WSJT-X's `jt9`, to the bit, in 35-40%
+  of its CPU at the default depth on x86-64 and half on a Pi 5; FT2 on that
+  FT4 decoder with improved's FT2 logic, in a quarter of improved's CPU
+  at the default depth on x86-64, a third on a Pi 5);
   each band's latest cycle on the web page's FT8,
   FT4 and FT2 tabs; senders to PSK Reporter and, for CQs and roger reports
   in FT8 and FT4, to RBN as RBN Aggregator sends them.
@@ -132,10 +137,12 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `RTTY` | `true` | decode the RTTY found (45.45 baud, 170 Hz; the web page's RTTY tab) and spot its calls by CW's rules: on telnet port 7301, to RBN as RTTY and, with `PSKREPORTER`, to PSK Reporter as RTTY. `false` decodes and spots none; the filter still keeps CW tracks off it |
 | `MAX_RTTY` | `100` | RTTY signals each band decodes at once, shared by its streams (10 m has several); past it a new one goes undecoded (still kept clear of CW tracks), the log says so and the web page's RTTY bar shows it full |
 | `JTTY` | `true` | decode WSJT-X 3.2's JTTY on its dials (7.090, 14.090, 21.090 and 28.090 MHz) wherever a stream covers one, shown live on the web page's JTTY tab; streams take a dial in where that costs no more of them. Its calls go to telnet port 7302 and PSK Reporter (with `PSKREPORTER`), never to RBN. `false` decodes none; a list of bands, e.g. `40,20,15`, decodes it on those dials only |
-| `FT8`, `FT4`, `FT2` | | bands to decode each mode on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with the mode's dial (default none), FT8 with WSJT-X's FT8 decoder built in, FT4 and FT2 with WSJT-X's `jt9`: senders to PSK Reporter (with `PSKREPORTER`) and FT8's and FT4's CQs to RBN; each mode's tab on the web page. Each band must be among `BANDS`. The image has WSJT-X improved 3.1.0's `jt9` |
+| `FT8`, `FT4`, `FT2` | | bands to decode each mode on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with the mode's dial (default none), with WSJT-X's FT8 and FT4 decoders and WSJT-X improved's FT2, built in: senders to PSK Reporter (with `PSKREPORTER`) and FT8's and FT4's CQs to RBN; each mode's tab on the web page. Each band must be among `BANDS` |
 | `FT8_DEPTH`, `FT4_DEPTH`, `FT2_DEPTH` | `normal` | the decoding depth: `fast`, `normal` or `deep` |
 | `FT8_JT9` | `false` | `true`: FT8 by the `jt9` program (`JT9`) instead of the built-in decoder |
-| `JT9` | `/usr/bin/jt9` | the jt9 program (the image's own, or one mounted in) |
+| `FT4_JT9` | `false` | `true`: FT4 by the `jt9` program (`JT9`) instead of the built-in decoder |
+| `FT2_JT9` | `false` | `true`: FT2 by the `jt9` program (`JT9`, WSJT-X improved's) instead of the built-in decoder |
+| `JT9` | `/usr/bin/jt9` | the jt9 program for `FT8_JT9`, `FT4_JT9`, `FT2_JT9` and `FST4W_JT9` (the image's own, WSJT-X improved 3.1.0's, or one mounted in) |
 | `JS8` | | bands to decode JS8 on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with a JS8 dial (default none): Normal, Fast, Turbo and Slow, the calls heard to PSK Reporter (with `PSKREPORTER`) with their grids, never RBN; the web page's JS8 tab. Each band must be among `BANDS`. Needs nothing in the container |
 | `WSPR` | | bands to decode WSPR and FST4W on, e.g. `20,40,80eu` or `all` (every dial but 22 and 8 m's: those by name, with a stream's centre in `BANDS`, e.g. `13.5551`), or `true` for every band of `BANDS` with a WSPR dial (default none; `80` is both 80 m dials when the stream holds 80eu, `60` likewise), with WSJT-X's `wsprd` and jt9's FST4W decoder, built in; the web page's WSPR tab. The image has WSJT-X improved 3.1.0's `jt9` (and its `wsprd`, for `WSPRD`) |
 | `WSPR_MODES` | `W2,F2,F5`, and `W2,F2,F5,F15,F30` on 2200 m and 630 m | `W2` (WSPR), `W15` (WSPR-15), `F2`, `F5`, `F15`, `F30` (FST4W-120 to -1800) or `all`; a band's own after a space, e.g. `W2,F2,F5 2200:F15,F30 630:all`: a band named takes its own, the list without a band every other (2200 m and 630 m too). Each band keeps only the slice of audio the decoders read, about 11 MB a band with all |
@@ -698,6 +705,41 @@ measured a cheaper way by default, within 0.0001 Hz of jt9's
 (`--fst4w-spread exact` for jt9's own, `off` for none). `--fst4w-jt9`
 (`FST4W_JT9`) runs the `jt9` program instead.
 
+### FT8, FT4 and FT2, built in
+
+FT8 and FT4 are decoded inside the skimmer by jt9's own FT8 and FT4
+decoders (WSJT-X 3.2.0-rc1, commit `567ad29ce`) in C++, and FT2 as WSJT-X
+improved 3.2.0 decodes it (its FT2 code, on that FT4 decoder): no program started,
+one decoder a band on a thread of its own, given each cycle as WSJT-X gives
+jt9 it. Every decode, its order, SNR, DT, frequency and annotation are
+jt9's, checked against jt9 built from WSJT-X's source on hundreds of
+recorded and generated periods, to the bit on x86-64 Linux and Windows (on
+a Pi, FFTW's ARM code rounds differently, and a few FT8 decodes near a
+threshold can go the other way; no FT4 or FT2 decode differed). FT2's
+reference is improved's FT2 code built on that FT4 decoder. CPU of the
+decoding alone, best of three, every decode the same (FT8: 17 periods, FT4:
+20, FT2: 25, busy and quiet, recorded and generated; FT2's busy periods are
+generated, as no FT2 was heard while recording):
+
+| CPU, WSJT-X's jt9 / built in | `fast` | `normal` (default) | `deep` |
+|---|---:|---:|---:|
+| FT8, x86-64 (Ryzen 7 5700U) | 7.9 / 3.9 s | 24.5 / 9.7 s | 62.8 / 21.8 s |
+| FT8, Raspberry Pi 5 | 13.6 / 8.5 s | 46.5 / 21.8 s | 125.2 / 50.4 s |
+| FT4, x86-64 (Ryzen 9 3900X) | 0.50 / 0.14 s | 2.08 / 0.72 s | 3.70 / 0.86 s |
+| FT4, Raspberry Pi 5 | 0.90 / 0.34 s | 3.97 / 1.90 s | 7.26 / 2.22 s |
+| FT2, x86-64 (Ryzen 9 3900X), WSJT-X improved 3.2.0's jt9 | 1.34 / 0.32 s | 2.29 / 0.54 s | 4.22 / 0.70 s |
+| FT2, Raspberry Pi 5, WSJT-X improved 3.2.0's jt9 | 2.52 / 0.85 s | 4.29 / 1.48 s | 8.68 / 1.84 s |
+
+Against the `jt9` the container has (WSJT-X improved 3.1.0's, which prints
+the same on every cycle), FT4 takes 2.6-2.7x less CPU at `normal` and
+4.7-4.9x less at `deep`, and 3.5 MiB a band against jt9's 13-24 MiB.
+`--ft8-jt9` (`FT8_JT9`), `--ft4-jt9` (`FT4_JT9`) and `--ft2-jt9`
+(`FT2_JT9`) run the `jt9` program instead. FT2's decodes are improved's
+FT2 on WSJT-X's FT4 decoder above: improved 3.2.0 changed its FT4
+decoder too (an extra a-priori pass, a slightly different front end), so
+its `jt9` finds a few decodes more or less and prints some 1 Hz, 0.1 s or
+1 dB apart.
+
 ### wsprd on its own
 
 This decoder is also a program of its own, a drop-in for WSJT-X's `wsprd`
@@ -707,17 +749,17 @@ its source. The skimmer does not need it.
 
 ### FT8, FT4, FT2 and WSPR
 
-FT4 and FT2 need WSJT-X's `jt9` (`apt install wsjtx`
-has it, in `/usr/bin`; on Windows, WSJT-X's installer puts it in
-`C:\WSJT\wsjtx\bin`, where it is looked for). FT8, WSPR and FST4W need
-nothing: WSJT-X's FT8 decoder, `wsprd` and jt9's FST4W decoder are built in,
-the same decodes in memory; `--ft8-jt9`, `--wsprd PATH` and `--fst4w-jt9`
-run the programs instead. FT2
-needs [WSJT-X improved](https://sourceforge.net/projects/wsjt-x-improved/)
-(WSJT-X's own has no FT2); tested with 3.1.0 improved AL_PLUS on Linux and
-Windows. Each band asked for must
-be among `--bands`; the skimmer will not start otherwise, nor without the
-program a mode needs.
+FT8, FT4, FT2, WSPR and FST4W need nothing installed: WSJT-X's FT8 and
+FT4 decoders, WSJT-X improved's FT2, `wsprd` and jt9's FST4W decoder are
+built in, the same decodes in memory. `--ft8-jt9`, `--ft4-jt9`,
+`--ft2-jt9`, `--wsprd PATH` and `--fst4w-jt9` run the programs instead:
+WSJT-X's `jt9` (`apt install wsjtx` has it, in `/usr/bin`; on Windows,
+WSJT-X's installer puts it in `C:\WSJT\wsjtx\bin`, where it is looked
+for), for `--ft2-jt9`
+[WSJT-X improved](https://sourceforge.net/projects/wsjt-x-improved/)'s
+(WSJT-X's own has no FT2; tested with 3.1.0 improved AL_PLUS on Linux and
+Windows). Each band asked for must be among `--bands`; the skimmer will
+not start otherwise, nor without the program an option asks for.
 
 ```
 ./ubersdr-skimmer --url http://receiver:8080 --bands 20,40 --ft8 20,40
@@ -972,14 +1014,18 @@ spots:
                      the built-in decoder (the default: jt9's decodes, on a
                      thread a dial, no program or shared memory)
   --ft4 [BANDS]      decode FT4 (7.5 s cycles) on these bands' FT4 dials, as
-                     --ft8 does FT8 but with the jt9 program (--jt9), to PSK
-                     Reporter, RBN and an FT4 tab
+                     --ft8 does FT8, with WSJT-X's FT4 decoder built in (or
+                     the jt9 program, --ft4-jt9), to PSK Reporter, RBN and an
+                     FT4 tab
   --ft4-depth D      as --ft8-depth, for FT4
+  --ft4-jt9          FT4 by the jt9 program (--jt9), as --ft8-jt9 for FT8
   --ft2 [BANDS]      decode FT2 (3.75 s cycles) on these bands' FT2 dials, as
-                     --ft8 does FT8, to PSK Reporter and an FT2 tab; never
-                     to RBN, as RBN Aggregator takes no FT2. Needs WSJT-X
-                     improved's jt9 (WSJT-X's own has no FT2)
+                     --ft8 does FT8, with WSJT-X improved's FT2 decoder built
+                     in (or the jt9 program, --ft2-jt9), to PSK Reporter and
+                     an FT2 tab; never to RBN, as RBN Aggregator takes no FT2
   --ft2-depth D      as --ft8-depth, for FT2
+  --ft2-jt9          FT2 by the jt9 program (--jt9), as --ft8-jt9 for FT8;
+                     it must be WSJT-X improved's (WSJT-X's own has no FT2)
   --js8 [BANDS]      decode JS8 (Normal, Fast, Turbo and Slow at once) on
                      these bands' JS8 dials (1.842, 3.578, 7.078, 10.130,
                      14.078 MHz and up; 20,40 or all; default none; with no
@@ -1062,8 +1108,8 @@ spots:
                      the call uploaded as to wsprnet (default --call)
   --wsprnet-server URL
                      where uploads go (default http://wsprnet.org/meptspots.php)
-  --jt9 PATH         the jt9 program FT4 and FT2 (and FT8, FST4W with
-                     --ft8-jt9, --fst4w-jt9) are decoded by
+  --jt9 PATH         the jt9 program FT8, FT4, FT2 and FST4W are decoded by
+                     with --ft8-jt9, --ft4-jt9, --ft2-jt9, --fst4w-jt9
                      (default /usr/bin/jt9; on Windows
                      C:\WSJT\wsjtx\bin\jt9.exe)
   --no-preroll       a new track reads from when it was found, as before:
