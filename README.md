@@ -138,18 +138,20 @@ Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 | `MAX_RTTY` | `100` | RTTY signals each band decodes at once, shared by its streams (10 m has several); past it a new one goes undecoded (still kept clear of CW tracks), the log says so and the web page's RTTY bar shows it full |
 | `JTTY` | `true` | decode WSJT-X 3.2's JTTY on its dials (7.090, 14.090, 21.090 and 28.090 MHz) wherever a stream covers one, shown live on the web page's JTTY tab; streams take a dial in where that costs no more of them. Its calls go to telnet port 7302 and PSK Reporter (with `PSKREPORTER`), never to RBN. `false` decodes none; a list of bands, e.g. `40,20,15`, decodes it on those dials only |
 | `FT8`, `FT4`, `FT2` | | bands to decode each mode on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with the mode's dial (default none), with WSJT-X's FT8 and FT4 decoders and WSJT-X improved's FT2, built in: senders to PSK Reporter (with `PSKREPORTER`) and FT8's and FT4's CQs to RBN; each mode's tab on the web page. Each band must be among `BANDS` |
-| `FT8_DEPTH`, `FT4_DEPTH`, `FT2_DEPTH` | `normal` | the decoding depth: `fast`, `normal` or `deep` |
+| `FT8_DEPTH`, `FT4_DEPTH`, `FT2_DEPTH` | `normal` (the compose file: `deep`) | the decoding depth: `fast`, `normal` or `deep` |
+| `FT8_THREADS`, `FT4_THREADS`, `FT2_THREADS` | every dial at once (the compose file: `4`) | the mode's decodes at once, every dial's together: a cycle waits its turn, dropped if not decoded within two cycles; the built-in decoders only |
 | `FT8_JT9` | `false` | `true`: FT8 by the `jt9` program (`JT9`) instead of the built-in decoder |
 | `FT4_JT9` | `false` | `true`: FT4 by the `jt9` program (`JT9`) instead of the built-in decoder |
 | `FT2_JT9` | `false` | `true`: FT2 by the `jt9` program (`JT9`, WSJT-X improved's) instead of the built-in decoder |
-| `JT9` | `/usr/bin/jt9` | the jt9 program for `FT8_JT9`, `FT4_JT9`, `FT2_JT9` and `FST4W_JT9` (the image's own, WSJT-X improved 3.1.0's, or one mounted in) |
+| `JT9` | `/usr/bin/jt9` | the jt9 program for `FT8_JT9`, `FT4_JT9`, `FT2_JT9` and `FST4W_JT9` (the image has none: mount one in, e.g. WSJT-X improved's for FT2) |
 | `JS8` | | bands to decode JS8 on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with a JS8 dial (default none): Normal, Fast, Turbo and Slow, the calls heard to PSK Reporter (with `PSKREPORTER`) with their grids, never RBN; the web page's JS8 tab. Each band must be among `BANDS`. Needs nothing in the container |
-| `WSPR` | | bands to decode WSPR and FST4W on, e.g. `20,40,80eu` or `all` (every dial but 22 and 8 m's: those by name, with a stream's centre in `BANDS`, e.g. `13.5551`), or `true` for every band of `BANDS` with a WSPR dial (default none; `80` is both 80 m dials when the stream holds 80eu, `60` likewise), with WSJT-X's `wsprd` and jt9's FST4W decoder, built in; the web page's WSPR tab. The image has WSJT-X improved 3.1.0's `jt9` (and its `wsprd`, for `WSPRD`) |
+| `WSPR` | | bands to decode WSPR and FST4W on, e.g. `20,40,80eu` or `all` (every dial but 22 and 8 m's: those by name, with a stream's centre in `BANDS`, e.g. `13.5551`), or `true` for every band of `BANDS` with a WSPR dial (default none; `80` is both 80 m dials when the stream holds 80eu, `60` likewise), with WSJT-X's `wsprd` and jt9's FST4W decoder, built in; the web page's WSPR tab. |
 | `WSPR_MODES` | `W2,F2,F5`, and `W2,F2,F5,F15,F30` on 2200 m and 630 m | `W2` (WSPR), `W15` (WSPR-15), `F2`, `F5`, `F15`, `F30` (FST4W-120 to -1800) or `all`; a band's own after a space, e.g. `W2,F2,F5 2200:F15,F30 630:all`: a band named takes its own, the list without a band every other (2200 m and 630 m too). Each band keeps only the slice of audio the decoders read, about 11 MB a band with all |
 | `WSPR_DEPTH` | `deep` | `fast`, `normal` or `deep` (wsprd `-qB`, `-C 500 -o 4`, `-C 500 -o 4 -d`) |
 | `WSPR_NOISE_CAL` | | each band's noise is measured every 2 minutes in dBFS/Hz; dB added to make it dBm/Hz, measured for your receiver: one for every band (`-130`) or a band's own (`-130 20:-128.5`) |
-| `WSPR_THREADS` | `4` | WSPR and FST4W decoders run at once (half the cores if fewer: 2 on a Pi 5); a band and mode one at a time (a band's FST4W modes one at a time), FST4W-1800 one at a time (about 0.5 GB) |
-| `WSPRD` | | a wsprd program to decode WSPR with instead of the built-in one (the same decodes), e.g. `/usr/bin/wsprd` (the image's own, or one mounted in) |
+| `WSPR_THREADS` | `4` | WSPR decoders run at once (half the cores if fewer: 2 on a Pi 5); a band and mode one at a time |
+| `FST4W_THREADS` | `4` | FST4W decoders run at once, a pool apart from WSPR's (half the cores if fewer); a band and mode one at a time (a band's FST4W modes one at a time), FST4W-1800 one at a time (about 0.5 GB) |
+| `WSPRD` | | a wsprd program to decode WSPR with instead of the built-in one (the same decodes), mounted in (the image has none) |
 | `WSPRD_ARGS` | | wsprd's flags in place of `WSPR_DEPTH`'s, e.g. `-C 500 -o 3 -d`; not `-a`, `-c`, `-0`, `-f`, `-m` or a file |
 | `FST4W_JT9` | `false` | `true`: FST4W by the `jt9` program (`JT9`) instead of the built-in decoder |
 | `FST4W_SPREAD` | `fast` | the built-in FST4W decoder's spread: `fast` (within 0.0001 Hz of jt9's), `exact` (jt9's) or `off` |
@@ -1010,6 +1012,9 @@ spots:
                      RBN Aggregator sends WSJT-X's, and each band's latest
                      cycle to the web page's FT8 tab
   --ft8-depth D      the decoding depth: fast, normal (default) or deep
+  --ft8-threads N    FT8 decodes at once, every dial's together (1-64;
+                     default: every dial at once); a cycle waits its turn,
+                     dropped if not decoded in two cycles. Built in only
   --ft8-jt9          FT8 by the jt9 program (--jt9), one running a dial, not
                      the built-in decoder (the default: jt9's decodes, on a
                      thread a dial, no program or shared memory)
@@ -1018,12 +1023,14 @@ spots:
                      the jt9 program, --ft4-jt9), to PSK Reporter, RBN and an
                      FT4 tab
   --ft4-depth D      as --ft8-depth, for FT4
+  --ft4-threads N    as --ft8-threads, for FT4
   --ft4-jt9          FT4 by the jt9 program (--jt9), as --ft8-jt9 for FT8
   --ft2 [BANDS]      decode FT2 (3.75 s cycles) on these bands' FT2 dials, as
                      --ft8 does FT8, with WSJT-X improved's FT2 decoder built
                      in (or the jt9 program, --ft2-jt9), to PSK Reporter and
                      an FT2 tab; never to RBN, as RBN Aggregator takes no FT2
   --ft2-depth D      as --ft8-depth, for FT2
+  --ft2-threads N    as --ft8-threads, for FT2
   --ft2-jt9          FT2 by the jt9 program (--jt9), as --ft8-jt9 for FT8;
                      it must be WSJT-X improved's (WSJT-X's own has no FT2)
   --js8 [BANDS]      decode JS8 (Normal, Fast, Turbo and Slow at once) on
@@ -1073,10 +1080,13 @@ spots:
                      its IQ. DB, measured for your receiver, is added to make
                      it dBm/Hz: one for every band, or a band's own as
                      --wspr-modes gives them, "-130 20:-128.5"
-  --wspr-threads N   WSPR and FST4W decoders run at once (1-64; default 4,
-                     or half the cores if fewer); a band and mode one at a time,
-                     FST4W-1800 one at a time (about 0.5 GB built in, 1.1 GB
-                     with jt9), a band's FST4W modes one at a time built in
+  --wspr-threads N   WSPR decoders run at once (1-64; default 4, or half
+                     the cores if fewer); a band and mode one at a time
+  --fst4w-threads N  FST4W decoders run at once, a pool apart from WSPR's
+                     (1-64; default 4, or half the cores if fewer); a band and
+                     mode one at a time, FST4W-1800 one at a time (about 0.5
+                     GB built in, 1.1 GB with jt9), a band's FST4W modes one
+                     at a time built in
   --wsprd PATH       WSPR by a wsprd program, each period written as a WAV
                      file for it (/usr/bin/wsprd; on Windows
                      C:\WSJT\wsjtx\bin\wsprd.exe, where WSJT-X installs it),
