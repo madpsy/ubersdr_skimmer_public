@@ -134,7 +134,7 @@ each skims and decodes, the decoders' depths and threads, and the reporters.
 | `WSJTX_OUT_ID` | `UberSDR Skimmer` | the instance's Id, as those programs show it |
 | `QRZ_USER`, `QRZ_PASSWORD` | | a [QRZ.com](https://www.qrz.com) login with an XML Data subscription: each call spotted is looked up (10,000 kept, the least recently spotted forgotten first), placing it on the web page's Map tab and giving its grid square to PSK Reporter. Checked at startup: if QRZ refuses it, the log and the Map tab say so and the skimmer runs on without. Not needed as an addon: the calls are asked of UberSDR's own lookups (its `lookup_services`, with `skimmer` among its `trusted_containers`), these used only if UberSDR serves none. Commented out in the compose file: uncomment and set them |
 | `QRZ_VALIDATE` | `false` | `true`, with QRZ lookups (UberSDR's, or `QRZ_USER` and `QRZ_PASSWORD`): spot only calls QRZ knows. A call QRZ does not know is not spotted (and asked again after a day); a spot waits up to 10 s for QRZ's answer. When QRZ cannot answer (down, an error, too slow) the spot goes out as without it, and the call is asked again at its next spot. Beacons are not checked |
-| `FREQ_CALIBRATION` | `1` | every frequency is multiplied by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's RBN tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it |
+| `FREQ_CALIBRATION` | `1` | every frequency is multiplied by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's RBN tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it. With radios in `EXTRA_ARGS`, this is the default; a `--freq-calibration` after a radio there is that radio's ([Frequency calibration for each radio](#frequency-calibration-for-each-radio)) |
 | `NOISE_FILTER` | `true` | keep tracks off SSB, data, noise and swept carriers in the CW segments (shown tinted on the web page); `false` tracks them as any signal |
 | `GAP_FILL` | `true` | silence where the UberSDR's packets went missing (found by their timestamps), so WSPR and FT keep time; `false` passes the stream as it comes |
 | `RTTY_FILTER` | `true` | find RTTY (two-tone FSK at the usual shifts) anywhere in the band but the digital modes' windows and keep tracks off it and its sidebands, which CW decoders otherwise read callsigns out of (shown tinted on the web page, with its shift). `false` tracks it as any signal, and decodes no RTTY |
@@ -542,7 +542,9 @@ ubersdr-skimmer-windows-x86_64.exe --hpsdr 192.168.1.50 --mode iq192 --bands all
   any `--hpsdr` is every radio's, after one that radio's.
 
 Several radios: give `--hpsdr` once per radio, each with bands of its own. The
-`--bands`, `--freq` and `--mode` options after an `--hpsdr` are that radio's.
+`--bands`, `--freq`, `--mode` and `--freq-calibration` options after an
+`--hpsdr` are that radio's (see
+[Frequency calibration for each radio](#frequency-calibration-for-each-radio)).
 One radio given twice (by address and name, or address and MAC) is refused,
 as is a band given to two radios: their receivers would only split it.
 
@@ -586,6 +588,8 @@ ubersdr-skimmer-linux-x86_64 --ka9q hf-status.local --bands 40,20 --ka9q-gain 10
   `ttl = 0` keeps radiod's traffic on the loopback interface). For a
   radiod on another host, with its `ttl` above 0, give the interface it is
   reached on: `--ka9q-iface eth0`.
+- `--bands`, `--freq-calibration` and the `--ka9q-` options after a `--ka9q`
+  are that radiod's.
 - The channels are closed when the skimmer stops. If it dies instead, radiod
   removes them itself within 10 s. If the IQ stops, the channels are made
   again.
@@ -634,13 +638,36 @@ with the radio's IP address or the last two bytes of its MAC address:
 does.
 
 **Several radios.** Give `--driver` once per radio. The `--bands`, `--freq`,
-`--mode` and `--cwsl-` options given after a `--driver` are that radio's:
+`--mode`, `--freq-calibration` and `--cwsl-` options given after a
+`--driver` are that radio's:
 
 ```
 ubersdr-skimmer-windows-x86_64.exe --call M9PSY ^
   --driver C:\Radios\HermesIntf_192.168.1.50.dll --mode iq192 --bands 160,80,40,30,20,17,15,12 ^
   --driver C:\Radios\HermesIntf_192.168.1.51.dll --bands 10
 ```
+
+### Frequency calibration for each radio
+
+`--freq-calibration F` (`FREQ_CALIBRATION` in Docker) multiplies every
+frequency by F, as CW Skimmer Server's `FreqCalibration` does: a factor
+(`1.000000468`) or ppm (`+0.5ppm`). Each radio has its own reference
+oscillator, so its own error: a `--freq-calibration` after an `--hpsdr`,
+`--ka9q` or `--driver` is that radio's alone, and one before any radio is
+the default for those given none.
+
+```
+ubersdr-skimmer-linux-x86_64 --call M9PSY --freq-calibration +0.4ppm \
+  --hpsdr 192.168.1.50 --mode iq192 --bands 160,80,40,30 \
+  --hpsdr 192.168.1.51 --mode iq192 --bands 20,17,15,12 --freq-calibration -1.2ppm
+```
+
+The first radio takes the default, +0.4 ppm; the second, -1.2 ppm. The
+log and the Config tab (a row for each radio) say which applies. SM7IUN
+measures one error for the whole call, all radios together; with several
+radios the RBN tab gives each radio's new calibration (its own times
+SM7IUN's factor). To tell one radio's error from another's, compare its
+spots with RBN's or a beacon's frequency.
 
 ### Sharing the IQ with CWSL tools
 
