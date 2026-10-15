@@ -1306,6 +1306,12 @@ decoder:
                      ubersdr.org at start and weekly, else
                      cluster-cw-calls.txt beside MASTER.SCP, else the one
                      built in)
+  --rtty-contests FILE
+                     what RTTY contest stations send, for spotting RTTY: the
+                     words runners call CQ with (TEST, MKR, WPX...) and the
+                     shapes of a report (599, 5NN), every contest's at once
+                     (default: rtty-contests.txt beside cty.dat, else the one
+                     built in; its comments say how to write one)
   --dc-guard         blank the window centre (only for hardware with a DC spike)
 ```
 <!-- /options -->
