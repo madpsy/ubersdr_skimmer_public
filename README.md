@@ -962,7 +962,9 @@ spots:
                      FreqCalibration (default 1). F is a factor (1.000000468)
                      or ppm (+0.5ppm, the same). To take SM7IUN's suggestion
                      (sm7iun.se, the web page's RBN tab), multiply this
-                     by its correction factor; it shows from the second day on
+                     by its correction factor; it shows from the second day on.
+                     After an --hpsdr, --ka9q or --driver: that radio's alone,
+                     the one before any radio the others'
   --all-bands        skim the whole window, CW sub-band or not (2200 m and
                      630 m still never)
   --max-tracks N     stations each stream can read at once, 128-2048
