@@ -655,7 +655,24 @@ setup wizard.
    tunes and whether it skims CW already; or HPSDR radios (discovery), each
    with its receivers and state, ticked to use (by MAC). A receiver's
    address can be typed in instead (**Read it** shows its card), and
-   ka9q-radio or a recording given by hand.
+   ka9q-radio or a recording given by hand. On Windows, **A radio's driver
+   (DLL)** lists the DLLs in the program's folder, the working folder and
+   CW Skimmer Server's (Program Files and its user data), or a folder or file
+   given by its whole path. Each is read first, never loaded: a Skimmer
+   Server SDR driver is a DLL for x86 or x64 exporting GetSdrInfo, StartRx,
+   StopRx and SetRxFrequency, and every DLL it imports must be found where
+   Windows will look when it is loaded (beside it, and those beside it in
+   turn; the system folder for its architecture, SysWOW64 for a 32-bit one;
+   the Windows folder; PATH). Only those can be ticked. Ticked, or on
+   **Test**, it is loaded in a process of its own (the 32- or 64-bit host,
+   in its folder, ended with the skimmer) and asked what it is: its
+   GetSdrInfo, never its StartRx, the process ended straight after. That
+   gives the radio's name, receivers and rates, kept for that version of the
+   file; a driver this skimmer is running is never loaded twice. The check
+   refuses a `dll` that is no driver, needs a DLL not found, or will not
+   load (with why, at its key), and fits the bands to the receivers as a
+   start does. IQ modes go to iq192, Skimmer Server's widest. A radio not
+   connected shows only at the start.
 3. **Bands**, 6 m; per radio with several (no band on two).
 4. **Decoders:** CW, RTTY, JTTY; FT8, FT4, FT2, JS8, WSPR off, on the skimmed
    bands, every band or chosen ones; WSPR's modes.

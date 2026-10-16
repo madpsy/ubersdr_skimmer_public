@@ -505,7 +505,13 @@ wizard, in this order:
    the host itself) may set it.
 2. **The source.** **Scan the network** finds UberSDR receivers and HPSDR
    radios (Hermes Lite 2 and the like). You can also type a receiver's
-   address, or name a ka9q-radio `radiod` or a recording.
+   address, or name a ka9q-radio `radiod` or a recording. On Windows, a
+   radio's CW Skimmer Server driver (DLL): the DLLs in this program's
+   folder and Skimmer Server's are listed, each checked to be a Skimmer
+   Server SDR driver (its exports and the DLLs it needs, 32- or 64-bit),
+   and ticked to use; another folder or DLL by its whole path. Ticked, or on
+   **Test**, it is loaded in a process of its own and asked what radio it
+   is and how many receivers it has, never started.
 3. **Bands**: each radio its own. A band a radio cannot tune (6 m on a Hermes
    Lite 2) is not offered.
 4. **Decoders**: CW, RTTY, JTTY, FT8, FT4, FT2, JS8, WSPR and FST4W. A band
