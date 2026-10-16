@@ -21,10 +21,10 @@ services:
       # Width of each IQ stream: iq48, iq96, iq192 or iq384; wider, fewer
       # streams (sessions) for the same bands
       IQ_MODE: "iq192"
-      # Report spots (CW, RTTY, JTTY) to PSK Reporter as CALLSIGN at LOCATOR.
-      # Leave "false" if UberSDR already uploads its CW skimmer's spots to
-      # PSKReporter with cwskimmer.yaml pointing here, or each goes twice
-      PSKREPORTER: "false"
+      # Report spots (CW, RTTY, JTTY, FT, JS8) to PSK Reporter as CALLSIGN at
+      # LOCATOR. Set "false" if UberSDR already uploads its CW skimmer's spots
+      # to PSKReporter with cwskimmer.yaml pointing here, or each goes twice
+      PSKREPORTER: "true"
       # Skim CW and spot its calls: telnet port 7300, RBN and PSK Reporter;
       # "false" turns it off, leaving RTTY, JTTY, FT, WSPR and JS8 running
       CW: "true"
@@ -48,10 +48,24 @@ services:
       FT8_THREADS: ""
       FT4_THREADS: ""
       FT2_THREADS: ""
+      # FT8, FT4, FT2 and JS8 on every band skimmed that has the mode's dial
+      # ("true"); or e.g. "20,40"; "false" off
+      FT8: "true"
+      FT4: "true"
+      FT2: "true"
+      JS8: "true"
       # FT decoding depth: fast, normal or deep
       FT8_DEPTH: "deep"
       FT4_DEPTH: "deep"
       FT2_DEPTH: "deep"
+      # WSPR and FST4W on every band skimmed that has a WSPR dial ("true"),
+      # every mode (WSPR, WSPR-15, FST4W-120 to -1800), deep; "false" off
+      WSPR: "true"
+      WSPR_MODES: "all"
+      WSPR_DEPTH: "deep"
+      # Upload WSPR and FST4W spots to wsprnet.org as CALLSIGN at LOCATOR; set
+      # "false" if UberSDR already uploads this receiver's WSPR
+      WSPRNET: "true"
       # Uncomment and set as needed (empty = the default):
       # UBERSDR_PASSWORD: ""  # the receiver's password, if it has one
       # MIN_MARGIN: "15"      # reduced-depth IQ, dB under the noise; 0 = lossless

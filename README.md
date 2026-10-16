@@ -107,7 +107,14 @@ port: 7300
 ## Configuration
 
 Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
-`./restart.sh` after changing them. Left unset, each takes the default.
+`./restart.sh` after changing them. Left unset, each takes the default below.
+The compose file as installed turns nearly everything on: CW, RTTY and JTTY;
+FT8, FT4, FT2 (depth `deep`) and JS8 on every band skimmed; WSPR and FST4W in
+every mode, `deep`; and every reporter (RBN, PSK Reporter, WSPRnet). Set a
+decoder `"false"` to turn it off. If UberSDR already uploads this receiver's
+CW spots to PSK Reporter, or its WSPR to WSPRnet, set `PSKREPORTER` or
+`WSPRNET` to `"false"`, or each spot goes twice. (An install's compose file
+is kept by `update.sh`: one made before 2026-10-16 has none of these on.)
 The web page's Config tab shows the configuration the skimmer is running
 with, each setting beside its variable, option and [config file](config-file.md)
 key (passwords only as set or not): the receiver or radios, every stream's
