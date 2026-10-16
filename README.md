@@ -106,9 +106,11 @@ port: 7300
 Environment variables in `~/ubersdr/skimmer/docker-compose.yml`; run
 `./restart.sh` after changing them. Left unset, each takes the default.
 The web page's Config tab shows the configuration the skimmer is running
-with, each setting beside its variable and option (passwords only as set or
-not): the receiver or radios, every stream's centre, edges and width, what
-each skims and decodes, the decoders' depths and threads, and the reporters.
+with, each setting beside its variable, option and [config file](config-file.md)
+key (passwords only as set or not): the receiver or radios, every stream's
+centre, edges and width, what each skims and decodes, the decoders' depths
+and threads, and the reporters. Its link at the foot downloads the settings
+as a config file (passwords left out).
 
 | Variable | Default | |
 |---|---|---|
@@ -125,7 +127,7 @@ each skims and decodes, the decoders' depths and threads, and the reporters.
 | `RBN_CALL` | `CALLSIGN` | the call RBN knows the skimmer by, its spots as `RBN_CALL-#` |
 | `RBN_BAD_CALLS` | `false` | `true`: send RBN no spot of a call in `./cache/BadCalls.txt` (as RBN Aggregator's "Not in BadCalls.txt"; the form under [The bad calls file](#the-bad-calls-file)), read again when edited; or a file's path in the container. The RBN tab's "Bad calls (manual)" shows the calls it held |
 | `WEB_PORT` | `6101` | the web page |
-| `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format, RTTY's spots on the next port (7301) in RTTY Skimmer Server's, JTTY's on 7302; `0` turns them all off |
+| `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format, RTTY's spots on the next port (7301) in RTTY Skimmer Server's, JTTY's on 7302, every mode's on 7303; `0` turns them all off |
 | `AGG_TELNET_PORT` | | with `RBN`, the reporter's local-user telnet port (as Aggregator's 7550) |
 | `PSKREPORTER` | `false` | `true` reports spots to [PSK Reporter](https://pskreporter.info), as UberSDR reports its CW skimmer's: as `CALLSIGN` at `LOCATOR`, each call at most once a band in 2 minutes. JTTY's calls go too, as JTTY. If UberSDR already uploads its CW spots to PSKReporter (with `cwskimmer.yaml` pointing here), leave this off, or each spot goes twice |
 | `PSKREPORTER_CALL` | `CALLSIGN` | the call reported as to PSK Reporter |
@@ -166,6 +168,7 @@ each skims and decodes, the decoders' depths and threads, and the reporters.
 | `RADIO_PASSWORD` | | the Radio tab tuned only by a page that gives this; anyone may still watch its spectrum. Unset: anyone may tune it |
 | `FETCH` | `true` | download the latest reference files (cty.dat, MASTER.SCP, the cluster's calls, RBN's bcn.csv and patt3ch.lst) at start and as they are due. `false`: never; the copies built into the program are used |
 | `EXTRA_ARGS` | | any other option (all of them under [Every option](#every-option)) |
+| `CONFIG` | | a [config file](#a-config-file-instead) to take every setting from instead, e.g. `/data/config/ubersdr-skimmer/config.json`; the variables above are then unused |
 
 Each band is its own session on the receiver. UberSDR's usual configuration
 lets addons on its Docker network past the session limits; if yours does not,
@@ -177,6 +180,20 @@ reference list is also built into the program (the latest there was when it
 was built), so it has them before, or without, any download; the web page's
 Reference files and Config tabs say which copy is in use for each: fetched
 online, built in or a local file.
+
+### A config file instead
+
+Every setting can be in one JSON file instead of these variables or a command
+line: [config-file.md](config-file.md) has its rules, every key and examples.
+In the compose file, uncomment `CONFIG` and the `./config:/data/config`
+volume; the file is then `~/ubersdr/skimmer/config/ubersdr-skimmer/config.json`.
+The program run yourself reads `~/.config/ubersdr-skimmer/config.json`
+(Windows: `%APPDATA%\ubersdr-skimmer\config.json`) when started with no
+arguments, or `--config FILE`. To turn a command line that works into a file:
+
+```
+ubersdr-skimmer --write-config config.json --url http://ubersdr:8080 --bands all --rbn
+```
 
 ### The bad calls file
 
@@ -206,6 +223,7 @@ DL1ABC/P
 | 7300 | DX-cluster telnet, `skimmer:7300` on the Docker network. Not published on the host; uncomment `ports:` in the compose file to publish it (the dxcluster addon may already use 7300 there) |
 | 7301 | RTTY's spots, as RTTY Skimmer Server's telnet, `skimmer:7301`. Not published either |
 | 7302 | JTTY's spots, in the same lines, `skimmer:7302`. Not published either |
+| 7303 | every mode's spots, `skimmer:7303`: CW's, RTTY's and JTTY's lines as on their own ports, and FT8, FT4, FT2, JS8, WSPR and FST4W as RBN Aggregator writes FT8 to its local users (the dial's frequency, the audio offset in Hz before the time; WSPR's and FST4W's power in dBm where the speed goes). Not published either |
 
 ## Decodes to WSJT-X programs
 
@@ -852,6 +870,9 @@ usage:
   ubersdr-skimmer --ka9q STATUS --bands LIST [options]
                                                      live, from ka9q-radio's radiod
   ubersdr-skimmer --input FILE --rate HZ --freq HZ [options]  offline, from raw IQ
+  ubersdr-skimmer [--config FILE]                    the settings from a config
+                                                     file (no arguments: the default
+                                                     one, as --write-config says)
 
 input:
   --url URL          receiver, e.g. http://44.31.241.13:8080
@@ -914,8 +935,10 @@ input:
                      Server's HermesIntf drives it: protocol 1 or 2,
                      whichever it answers (2 if both), one receiver per band
                      of --bands (or the one of --freq), as many as it says it
-                     has (too few, 10 m is cut, least useful part first; 6 m
-                     is left out). --bands, --freq, --mode (iq48, iq96,
+                     has (too few, 6 m in all goes first, then 10 m is cut,
+                     least useful part first). 6 m only where its board
+                     samples it (not a Hermes Lite 2), or UberSDR's bridge
+                     says its receiver tunes it. --bands, --freq, --mode (iq48, iq96,
                      iq192, iq384) and the --hpsdr options after an --hpsdr
                      are that radio's; repeat it for another radio, with
                      bands of its own (no band on two radios). Not with
@@ -992,6 +1015,13 @@ spots:
                      by its correction factor; it shows from the second day on.
                      After an --hpsdr, --ka9q or --driver: that radio's alone,
                      the one before any radio the others'
+  --six-metres M     6 m in --bands: cw (50.000-50.100 alone, one stream
+                     at iq192 or iq384), whole (50.400-50.500 too, as Skimmer
+                     Server: two streams at iq192 or iq384) or off. By default whole,
+                     where the receiver tunes it (an HPSDR radio as its
+                     board says, never a --driver's); cw or whole takes it on
+                     a --driver too. After an --hpsdr, --ka9q or --driver:
+                     that radio's alone, the one before any radio the others'
   --all-bands        skim the whole window, CW sub-band or not (2200 m and
                      630 m still never)
   --max-tracks N     stations each stream can read at once, 128-2048
@@ -1185,6 +1215,16 @@ spots:
                      RBN reporter); use the ones beside the program, else the
                      ones built in (the latest there were at the build)
   --version          print the version and exit
+  --config FILE      take every setting from FILE, a JSON config file
+                     (config-file.md beside the README); with no other option. With no
+                     arguments at all, the default file:
+                     $XDG_CONFIG_HOME or ~/.config (Windows: %APPDATA%)
+                     /ubersdr-skimmer/config.json
+  --write-config [FILE] [--all] [--force] OPTIONS
+                     check OPTIONS as a run would and write them as a config
+                     file (default the default file), then exit: --all every
+                     key (null where not given), --force over a file that is
+                     there
   --clear-cache      first empty ~/.cache/ubersdr-skimmer (the fetched lists
                      and FFTW wisdom; the RBN fingerprint is kept), so all
                      is fetched and learned afresh
@@ -1198,9 +1238,9 @@ output:
                      "elsewhere" (heard, but not within 3 kHz), or "none";
                      their commonest frequency, median speed and how many
                      skimmers; and "other:CALL" when RBN heard another call
-                     on our frequency. Telnet spots are not held or changed
-  --rbn HOST:PORT    the RBN node for --compare (default
-                     telnet.reversebeacon.net:7000)
+                     on our frequency, read from RBN's telnet node
+                     (telnet.reversebeacon.net:7000). Telnet spots are not
+                     held or changed
   --name NAME        the operator, as the telnet sign-on and RBN show it
                      (default: the receiver's callsign)
   --qth TEXT         the location (default: the receiver's)
@@ -1263,7 +1303,10 @@ output:
                      not checked. Off by default
   --telnet PORT      DX-cluster telnet server (default 7300 when live, off for
                      --input); 0 turns it off. RTTY's spots on PORT+1, as
-                     RTTY Skimmer Server; JTTY's on PORT+2
+                     RTTY Skimmer Server; JTTY's on PORT+2; every mode's on
+                     PORT+3: CW's, RTTY's and JTTY's lines, and FT8, FT4,
+                     FT2, JS8, WSPR and FST4W as RBN Aggregator writes FT8
+                     (the dial, then the offset in Hz)
   --json             spots as JSON lines on stdout instead of cluster lines
   --web PORT         a web page on this port (default 9101 when live, off for
                      --input; 0 turns it off) for watching it work: spots and
