@@ -65,7 +65,10 @@ the top.
 This repository holds only what an install needs: the installer, the
 `docker-compose.yml` and the helper scripts. The program comes as the Docker
 image [`madpsy/ubersdr_skimmer`](https://hub.docker.com/r/madpsy/ubersdr_skimmer)
-(amd64 and arm64).
+(amd64 and arm64), and as one file for Linux (x86-64, 64-bit ARM) and Windows
+from [Releases](https://github.com/madpsy/ubersdr_skimmer_public/releases/latest):
+run that with no arguments and its web page sets it up ([the setup
+wizard](#the-quickest-start-no-arguments-the-setup-wizard)).
 
 **Status: testing.**
 
@@ -189,7 +192,11 @@ In the compose file, uncomment `CONFIG` and the `./config:/data/config`
 volume; the file is then `~/ubersdr/skimmer/config/ubersdr-skimmer/config.json`.
 The program run yourself reads `~/.config/ubersdr-skimmer/config.json`
 (Windows: `%APPDATA%\ubersdr-skimmer\config.json`) when started with no
-arguments, or `--config FILE`. To turn a command line that works into a file:
+arguments (with none there, its web page on port 9101 is a [setup
+wizard](#the-quickest-start-no-arguments-the-setup-wizard) that writes the
+file and starts from it), or `--config FILE`. A skimmer run from a file can
+then be edited on its Config tab, behind that password. The addon and the
+compose file never show the wizard. To turn a command line that works into a file:
 
 ```
 ubersdr-skimmer --write-config config.json --url http://ubersdr:8080 --bands all --rbn
@@ -473,6 +480,61 @@ from exactly one kind of source: `--url`, `--hpsdr`, `--ka9q`, `--driver` or
 | ka9q-radio | `--ka9q STATUS` | Linux (radiod's host, or the same LAN) | whatever radiod's front end is: RX888, Airspy, Airspy HF+, SDRplay, HackRF, RTL-SDR, FUNcube... | one radiod channel per band, iq48–iq384, made beside its others | `--ka9q hf-status.local --bands all` |
 | Skimmer Server driver | `--driver DLL` | Windows | any radio CW Skimmer Server drives (QS1R, HermesIntf radios, ...) | one of the radio's receivers per band, iq48–iq192; shared with CWSL tools | `--driver C:\Radios\Qs1rIntf.dll --bands 40,30,20` |
 | Recording | `--input FILE` | Linux, Windows | raw IQ as `--record` writes it | one stream | `--input 40m.cf32 --rate 96000 --freq 7020000` |
+
+### The quickest start: no arguments, the setup wizard
+
+Run it with no arguments (on Windows, double-click the `.exe`) and open
+`http://localhost:9101/`:
+
+```
+./ubersdr-skimmer-linux-x86_64
+```
+
+With no config file yet it has nothing to skim, so the web page is a setup
+wizard, in this order:
+
+1. **An admin password** (or **Generate one** and **Copy** it). It protects the
+   settings from then on. Until it is set, only a private address (your LAN,
+   the host itself) may set it.
+2. **The source.** **Scan the network** finds UberSDR receivers and HPSDR
+   radios (Hermes Lite 2 and the like). You can also type a receiver's
+   address, or name a ka9q-radio `radiod` or a recording.
+3. **Bands**: each radio its own. A band a radio cannot tune (6 m on a Hermes
+   Lite 2) is not offered.
+4. **Decoders**: CW, RTTY, JTTY, FT8, FT4, FT2, JS8, WSPR and FST4W. A band
+   given a decoder is added to the bands skimmed if no stream would hold it.
+5. **Station**: callsign, locator, name and location. A receiver's can be
+   filled in from it.
+6. **Reporting**: RBN (licensed amateurs only, under your own call), PSK
+   Reporter, WSPRnet; QRZ.com lookups.
+7. **Services**: the telnet and web ports, and the addresses admin is allowed
+   from.
+8. **Review**: the file and the command line it stands for. **Save and start**
+   writes it and starts the skimmer from it.
+
+Each **Next** checks the settings so far as a start from them would: the
+streams are planned with the radios and receiver that were found, and any
+that were not scanned are asked. So a radio's bands that need more receivers
+than it has are said at Bands, and a radio that does not answer is said
+before anything is saved. A file the wizard saves starts.
+
+The file is `~/.config/ubersdr-skimmer/config.json` (Windows
+`%APPDATA%\ubersdr-skimmer\config.json`). Every later start with no arguments
+runs from it. Change it on the web page's **Config** tab: **Edit settings**,
+behind the admin password, checked the same way, then **Save and restart**.
+
+- **Any argument means no wizard.** Started with options (`--url ...`,
+  `--hpsdr ...`, or Docker's variables), the skimmer runs from them and the
+  Config tab only shows the settings: change the options and restart. Without
+  `--admin-password-hash` nobody can do anything from the page; with it,
+  Restart is the only thing.
+- **A config file of your own:** `--config FILE` (no other option with it),
+  or `--write-config FILE OPTIONS...` to turn a command line that works into
+  one. The [config file reference](config-file.md) has every key.
+- **Docker and the UberSDR addon** never show the wizard: they are set up by
+  their variables (or `CONFIG`, [above](#a-config-file-instead)).
+
+### The station
 
 Away from a receiver there is nowhere to take the station from. Give `--call`,
 and for RBN (`--rbn`) also `--name`, `--qth` and `--locator`. `--pskreporter`
@@ -1219,7 +1281,8 @@ spots:
                      (config-file.md beside the README); with no other option. With no
                      arguments at all, the default file:
                      $XDG_CONFIG_HOME or ~/.config (Windows: %APPDATA%)
-                     /ubersdr-skimmer/config.json
+                     /ubersdr-skimmer/config.json; with none there, only the
+                     web page, on 9101, saying how to give a source
   --write-config [FILE] [--all] [--force] OPTIONS
                      check OPTIONS as a run would and write them as a config
                      file (default the default file), then exit: --all every
@@ -1328,6 +1391,17 @@ output:
                      Default: anyone may tune it
   --no-radio         no Radio tab: before any --hpsdr or --ka9q, for none of
                      them (nor the receiver); after one, for that radio
+  --admin-password-hash HASH
+                     the web page's admin password, as --hash-password makes
+                     it: with it, a run from a config file can be edited on
+                     the Config tab, and any run restarted. No password, no
+                     admin (the first-time setup sets one)
+  --admin-allow LIST the addresses admin is allowed from, addresses and CIDR
+                     ranges, IPv4 or IPv6: 192.168.1.0/24,10.8.0.5 (default:
+                     any, with the password). Behind UberSDR's proxy, the
+                     address it says (X-Real-IP)
+  --hash-password    read a password from stdin, print its hash for
+                     --admin-password-hash (admin.password_hash), and exit
   --tracks           print every station's decoded text as it changes,
                      instead of spots (with --json, as JSON)
 

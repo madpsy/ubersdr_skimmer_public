@@ -20,17 +20,18 @@ true of its key here.
 - [Making a file from a command line](#making-a-file-from-a-command-line)
 - [Docker](#docker)
 - [The Config tab](#the-config-tab)
+- [Setting it up from the web page](#setting-it-up-from-the-web-page)
 - [Versions of the file](#versions-of-the-file)
 
 ## Starting with a file
 
 | You run | It does |
 |---|---|
-| `ubersdr-skimmer` (no arguments) | reads the file at the [default location](#where-the-file-lives). With no file there it prints its usage and `no config at <path>`, and exits 2, as it did before there were files |
+| `ubersdr-skimmer` (no arguments) | reads the file at the [default location](#where-the-file-lives). With no file there it has no source of IQ: it runs the web page alone, on port 9101 (`http://localhost:9101/`), with the [setup wizard](#setting-it-up-from-the-web-page), which writes the file and starts the skimmer from it. Ctrl-C (or SIGTERM) stops it |
 | `ubersdr-skimmer --config PATH` | reads that file. A file that is missing or wrong is an error (exit 2), never a quiet fall back to the defaults |
 | `ubersdr-skimmer --config PATH --anything` | an error: `--config takes no other options: put them in the file`. A file and options are never mixed, so what runs is always what one of them says |
 | `ubersdr-skimmer --url ... (any options)` | the command line, as always. The default file is **not** read |
-| `ubersdr-skimmer --help`, `--version`, `--hpsdr-discover` | as always: these are commands, not settings, and are never in a file |
+| `ubersdr-skimmer --help`, `--version`, `--hpsdr-discover`, `--hash-password` | as always: these are commands, not settings, and are never in a file |
 | `ubersdr-skimmer --write-config [PATH] (options)` | checks the options and writes them as a file (default: the default location), then exits. See [Making a file from a command line](#making-a-file-from-a-command-line) |
 
 ## Where the file lives
@@ -132,6 +133,7 @@ the command line.
   "qrz":            { ... },
   "telnet":         { ... },
   "web":            { ... },
+  "admin":          { ... },   // the web page's admin: its password, who may
   "output":         { ... },   // stdout: JSON, tracks, --compare
   "data":           { ... }    // cty.dat, MASTER.SCP and the other lists
 }
@@ -442,6 +444,17 @@ names (`W2`, `W15`, `F2`, `F5`, `F15`, `F30`) are taken too. Band names are
 | `port` | int | `--web` | the web page; 0 none (default 9101 live) |
 | `root` | path | `--web-root` | serve a built `web/dist` instead of the one built in |
 
+### `admin`
+
+The web page's admin: the first-time setup's wizard sets the password; with
+one, a run from a config file can be edited on the Config tab, and any run
+restarted.
+
+| Key | Type | Option | |
+|---|---|---|---|
+| `password_hash` | string | `--admin-password-hash` | the admin password's hash, as `ubersdr-skimmer --hash-password` prints it (`pbkdf2-sha256$...`); none: no admin |
+| `allow` | list of strings | `--admin-allow` | addresses and CIDR ranges (IPv4, IPv6) admin is allowed from, `["192.168.1.0/24", "10.8.0.5"]`; empty or left out: any address, with the password. Behind UberSDR's proxy, the address it names (`X-Real-IP`) |
+
 ### `output`
 
 What goes to stdout.
@@ -616,8 +629,9 @@ updates as the cache is.
   of this reference is a row, with the value the run took, given or the
   default. Rows of a feature that is off are left out (FT8's depth while FT8
   is off); a test keeps the tab and this reference in step.
-- Its first row says where the settings came from: the command line, or the
-  file (its path, and when it was changed).
+- Its first rows say where the settings came from (the command line, or the
+  file) and where the default file is; above them, Edit, Restart or why not
+  (see [Setting it up from the web page](#setting-it-up-from-the-web-page)).
 - Each row shows the file's key beside the option and the environment
   variable (`reporting.rbn.call` beside `--rbn-call` and `RBN_CALL`).
 - **Download these settings as config.json**, at the foot of the tab, gives
@@ -625,6 +639,83 @@ updates as the cache is.
   password left out (null, and a `_passwords` note saying so): the page is
   open to anyone who can reach it. Put the passwords back, and it is a file
   to start with `--config`.
+
+## Setting it up from the web page
+
+**The first time** (no arguments, no file): the page on port 9101 is a
+setup wizard.
+
+1. **An admin password**, twice, or **Generate one** (20 random characters)
+   and **Copy** it. It protects the settings from then on. Until it is set,
+   only a client on a private address (10/8, 172.16/12, 192.168/16, the host
+   itself, IPv6 ULA and link-local) may set it; a visitor from anywhere else
+   sees how to set the skimmer up instead.
+2. **The source:** **Scan the network** finds UberSDR receivers (mDNS), each
+   a card with its name, calls, location, sessions free, IQ modes, what it
+   tunes and whether it skims CW already; or HPSDR radios (discovery), each
+   with its receivers and state, ticked to use (by MAC). A receiver's
+   address can be typed in instead (**Read it** shows its card), and
+   ka9q-radio or a recording given by hand.
+3. **Bands**, 6 m; per radio with several (no band on two).
+4. **Decoders:** CW, RTTY, JTTY; FT8, FT4, FT2, JS8, WSPR off, on the skimmed
+   bands, every band or chosen ones; WSPR's modes.
+5. **Station**, filled in from the receiver chosen if asked.
+6. **Reporting:** RBN, PSK Reporter, WSPRnet; QRZ.com.
+7. **Services:** the telnet and web ports; the addresses admin is allowed from.
+8. **Review:** the file, the command line it stands for, and the check
+   (as a start from it would be); **Save and start** writes it, and the
+   skimmer starts from it (on the web port it says, which the page follows).
+
+**Next** checks the settings so far, and goes on only without errors of that
+step or one before; each is shown at its field. The check is a start's: the
+file read and its options checked, then every stream planned with the
+hardware as it is. That is the receiver's range, each HPSDR radio's
+receivers and highest frequency, and radiod's front end: what the page
+scanned, and for what it did not, asked by the skimmer then. A file the
+wizard saves starts. What that means at each step:
+
+- A radio whose bands need more receivers than it has (the 10 m beacons and
+  the decoders' dials take streams of their own) is said at Bands, with a
+  wider IQ mode offered when it is iq48 or iq96.
+- A radio or radiod that does not answer is refused at its address; a
+  receiver whose description cannot be read is not (a start goes on without
+  its range).
+- A band a radio or receiver cannot tune is not offered (6 m on a Hermes
+  Lite 2, or on a receiver to 30 MHz, or with 6 m off), nor are WSPR's 22 and
+  8 m, which need a stream given by its centre (All settings).
+- A decoder's **every band** is written as the bands that can be skimmed,
+  each added to the bands skimmed where it is not.
+- With a recording, FT8, FT4, FT2, JS8 and WSPR (cut by the clock) and the
+  reporters are not offered; WSPRnet needs WSPR on.
+- A source still to be filled in says what it needs at its field (the
+  receiver's address, the recording's file, a radio's bands).
+
+**After that**, the Config tab of a skimmer run from a config file has
+**Edit settings**: the admin password, then the same sections, **All
+settings** (every key of this reference, each with its `--help`), the file as
+**JSON**, and the admin password changed. Each change is checked a moment
+later, each refusal shown at its key; **Save and restart** writes the file
+and restarts the skimmer from it. **Restart** alone is there too. The file
+this run started from checks good as it is: the radios it is streaming from
+(which answer no discovery while it does) are taken as they answered at its
+start.
+
+A skimmer run from options (any argument on the command line, or Docker's
+variables) never shows the wizard and is never edited here: its settings are
+where its options are (in Docker, the compose file). Without
+`--admin-password-hash` the page refuses every admin action; with it, Restart
+is the only one.
+
+- Once a password is set, any address may log in, unless `admin.allow` names
+  the ones that may (a save that would leave out the address saving it is
+  refused). Five wrong passwords a minute from an address lock it out for a
+  minute; each login and failure is logged with its address.
+- Behind UberSDR's addon proxy, the client's address is the one the proxy
+  names (`X-Real-IP`); a header from a public address is never believed.
+- Over plain HTTP the password crosses the network as typed: the login says
+  so.
+- Passwords stored never reach the page: they show as set, and are kept
+  unless typed anew.
 
 ## Versions of the file
 
