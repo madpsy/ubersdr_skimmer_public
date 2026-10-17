@@ -82,6 +82,8 @@ services:
       # NOISE_FILTER: "true"  # "false": track signals in SSB, data and noise in the CW segments too
       # RTTY_FILTER: "true"   # "false": track signals on RTTY too
       # MAX_RTTY: "100"      # RTTY signals each band decodes at once (its streams share them)
+      # AUTO_CALIBRATE: "false" # "true": with RBN, calibrate by SM7IUN's daily skew as each list comes in
+      # RTTY_TENS_HZ: "false" # "true": RTTY spots' frequencies to 10 Hz (14083.45), as RTTY Skimmer Server's TensHz
       # PSKREPORTER_ANTENNA: ""  # the antenna, as PSK Reporter shows it
       # STATIC_FILTER: "full"  # static crashes: "full" start and keep no track, "starts" start none, "off" track as any signal
       # WSJTX_OUT: ""         # HOST:PORT, e.g. "192.168.1.20:2237": FT8/FT4/FT2, WSPR and FST4W decodes sent there
@@ -93,6 +95,8 @@ services:
       # RADIO: "true"         # "false": no Radio tab (a 192 kHz session of its own while a page has it open)
       # RADIO_PASSWORD: ""    # the Radio tab tuned only by a page that gives this (anyone may watch)
       # FETCH: "true"         # "false": never download cty.dat, MASTER.SCP and the like; the built-in copies are used
+      # PATT3CH_FILE: "true"  # your own patt3ch.lst, in ./cache; also CTY_FILE, SCP_FILE, CALLS_FILE, BCN_FILE,
+      #                       # RTTY_CONTESTS_FILE ("true": the file of that name in ./cache, or a path); never fetched over
       # EXTRA_ARGS: ""        # anything else (see: docker exec skimmer ubersdr-skimmer --help)
       # CONFIG: "/data/config/ubersdr-skimmer/config.json"  # settings from a config file
       #                     # instead of these variables (see the README); with the

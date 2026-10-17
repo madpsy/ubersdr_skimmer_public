@@ -25,6 +25,8 @@ running:
   its text shown live on the web page's RTTY tab, and the calls it sends are
   spotted as RTTY Skimmer Server does: on the next telnet port (7301), to RBN
   as RTTY and, when on, to PSK Reporter. `RTTY: "false"` turns it off.
+  Spot frequencies are to 100 Hz; `RTTY_TENS_HZ: "true"` makes them 10 Hz
+  (`14083.45`), as RTTY Skimmer Server's `TensHz`.
 - **JTTY**: WSJT-X 3.2's JTTY is decoded on its dials (7.090, 14.090, 21.090
   and 28.090 MHz) wherever a band's stream covers one, a port of WSJT-X's
   own receiver. Each signal's messages show live on the web page's JTTY tab,
@@ -146,12 +148,14 @@ as a config file (passwords left out).
 | `WSJTX_OUT_ID` | `UberSDR Skimmer` | the instance's Id, as those programs show it |
 | `QRZ_USER`, `QRZ_PASSWORD` | | a [QRZ.com](https://www.qrz.com) login with an XML Data subscription: each call spotted is looked up (10,000 kept, the least recently spotted forgotten first), placing it on the web page's Map tab and giving its grid square to PSK Reporter. Checked at startup: if QRZ refuses it, the log and the Map tab say so and the skimmer runs on without. Not needed as an addon: the calls are asked of UberSDR's own lookups (its `lookup_services`, with `skimmer` among its `trusted_containers`), these used only if UberSDR serves none. Commented out in the compose file: uncomment and set them |
 | `QRZ_VALIDATE` | `false` | `true`, with QRZ lookups (UberSDR's, or `QRZ_USER` and `QRZ_PASSWORD`): spot only calls QRZ knows. A call QRZ does not know is not spotted (and asked again after a day); a spot waits up to 10 s for QRZ's answer. When QRZ cannot answer (down, an error, too slow) the spot goes out as without it, and the call is asked again at its next spot. Beacons are not checked |
+| `AUTO_CALIBRATE` | `false` | `true`: with `RBN`, calibrate the frequency by SM7IUN's skew as each day's list comes in ([Frequency calibration for each radio](#frequency-calibration-for-each-radio): its rules) |
 | `FREQ_CALIBRATION` | `1` | every frequency is multiplied by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's RBN tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it. With radios in `EXTRA_ARGS`, this is the default; a `--freq-calibration` after a radio there is that radio's ([Frequency calibration for each radio](#frequency-calibration-for-each-radio)) |
 | `NOISE_FILTER` | `true` | keep tracks off SSB, data, noise and swept carriers in the CW segments (shown tinted on the web page); `false` tracks them as any signal |
 | `GAP_FILL` | `true` | silence where the UberSDR's packets went missing (found by their timestamps), so WSPR and FT keep time; `false` passes the stream as it comes |
 | `RTTY_FILTER` | `true` | find RTTY (two-tone FSK at the usual shifts) anywhere in the band but the digital modes' windows and keep tracks off it and its sidebands, which CW decoders otherwise read callsigns out of (shown tinted on the web page, with its shift). `false` tracks it as any signal, and decodes no RTTY |
 | `RTTY` | `true` | decode the RTTY found (45.45 baud, 170 Hz; the web page's RTTY tab) and spot its calls by CW's rules: on telnet port 7301, to RBN as RTTY and, with `PSKREPORTER`, to PSK Reporter as RTTY. `false` decodes and spots none; the filter still keeps CW tracks off it |
 | `MAX_RTTY` | `100` | RTTY signals each band decodes at once, shared by its streams (10 m has several); past it a new one goes undecoded (still kept clear of CW tracks), the log says so and the web page's RTTY bar shows it full |
+| `RTTY_TENS_HZ` | `false` | `true`: RTTY spots' frequencies to 10 Hz (`14083.45`), as RTTY Skimmer Server's `TensHz=1`, on telnet ports 7301 and 7303 and to RBN, which keeps the second decimal; `false` to 100 Hz (`14083.5`), as RTTY Skimmer Server's by default. CW's are always 100 Hz |
 | `JTTY` | `true` | decode WSJT-X 3.2's JTTY on its dials (7.090, 14.090, 21.090 and 28.090 MHz) wherever a stream covers one, shown live on the web page's JTTY tab; streams take a dial in where that costs no more of them. Its calls go to telnet port 7302 and PSK Reporter (with `PSKREPORTER`), never to RBN. `false` decodes none; a list of bands, e.g. `40,20,15`, decodes it on those dials only |
 | `FT8`, `FT4`, `FT2` | | bands to decode each mode on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with the mode's dial (default none), with WSJT-X's FT8 and FT4 decoders and WSJT-X improved's FT2, built in: senders to PSK Reporter (with `PSKREPORTER`) and FT8's and FT4's CQs to RBN; each mode's tab on the web page. Each band must be among `BANDS` |
 | `FT8_DEPTH`, `FT4_DEPTH`, `FT2_DEPTH` | `normal` (the compose file: `deep`) | the decoding depth: `fast`, `normal` or `deep` |
@@ -176,7 +180,8 @@ as a config file (passwords left out).
 | `STATIC_FILTER` | `full` | static crashes (lightning far off, lifting the whole band for a few ms several times a second): `full` starts no track, and keeps none running, on a signal over the threshold only because a crash lifted the band; `starts` starts none so but lets crashes keep running tracks; `off` tracks them as any signal. The web page shows how often they come (the noise floor drawn bolder, and the stream's "static" figure) |
 | `RADIO` | `true` | the web page's Radio tab: a 192 kHz session of its own on the receiver, opened while a page has the tab open and closed 10 s after the last leaves. `false` turns it off |
 | `RADIO_PASSWORD` | | the Radio tab tuned only by a page that gives this; anyone may still watch its spectrum. Unset: anyone may tune it |
-| `FETCH` | `true` | download the latest reference files (cty.dat, MASTER.SCP, the cluster's calls, RBN's bcn.csv and patt3ch.lst) at start and as they are due. `false`: never; the copies built into the program are used |
+| `FETCH` | `true` | download the latest reference files (cty.dat, MASTER.SCP, the cluster's calls, RBN's bcn.csv and patt3ch.lst) at start and as they are due. `false`: never; the copies built into the program are used (or your own, below), never one a run before downloaded |
+| `CTY_FILE`, `SCP_FILE`, `CALLS_FILE`, `BCN_FILE`, `PATT3CH_FILE`, `RTTY_CONTESTS_FILE` | | your own cty.dat, MASTER.SCP, cluster-cw-calls.txt, bcn.csv, patt3ch.lst or rtty-contests.txt instead of the fetched or built-in one: `true` for the file of that name in `./cache` (`~/ubersdr/skimmer/cache/patt3ch.lst`), or a path in the container. Used always and never fetched over; the Reference files tab says which copy is in use |
 | `EXTRA_ARGS` | | any other option (all of them under [Every option](#every-option)) |
 | `CONFIG` | | a [config file](#a-config-file-instead) to take every setting from instead, e.g. `/data/config/ubersdr-skimmer/config.json`; the variables above are then unused |
 
@@ -226,8 +231,58 @@ DL1ABC/P
 - Upper or lower case alike; spaces around the call are ignored.
 - Blank lines and lines starting with `#` are skipped.
 - Only the spotted call is checked, and a beacon in the list is held too.
-- Saved changes are read within 10 s; no restart is needed. A missing file
-  holds nothing, and the RBN tab says it cannot read it.
+- It is checked line by line, as the reference files below are: a line
+  that is not a callsign (two calls on one line, a `*`, text pasted in) is
+  refused, saying which line. Saved changes are read within a few seconds,
+  no restart needed; a change that does not read keeps the list in use, and
+  the Resources tab shows why. A file not there yet holds no calls until it
+  is (and is read when it appears).
+- Or upload it on the Resources tab, as the admin: it is checked, said
+  taken ("12 bad calls") or refused with why, and held at once. With
+  `RBN_BAD_CALLS: "true"` it replaces `./cache/BadCalls.txt`; without it,
+  it is kept in `./cache/ubersdr-skimmer/own/` and held at every start.
+
+### Your own reference files
+
+The skimmer uses six reference files: cty.dat (countries), MASTER.SCP
+(known calls), cluster-cw-calls.txt (calls heard on the cluster),
+bcn.csv (RBN's beacons), patt3ch.lst (the call shapes RBN takes) and
+rtty-contests.txt (what RTTY contest stations send); and, with RBN, your
+BadCalls.txt ([above](#the-bad-calls-file)), which is held to the same
+rules below, saved and uploaded the same way. Normally they are
+downloaded as they are updated, or the copies built into the program are
+used. Any of them can be your own instead, in either of two ways:
+
+- **Name it.** In `docker-compose.yml`, `CTY_FILE`, `SCP_FILE`,
+  `CALLS_FILE`, `BCN_FILE`, `PATT3CH_FILE` or `RTTY_CONTESTS_FILE`:
+  `"true"` for the file of that name in `./cache` (for example
+  `PATT3CH_FILE: "true"` and your file at
+  `~/ubersdr/skimmer/cache/patt3ch.lst`), or a path inside the container.
+  Running the program yourself, `--cty`, `--scp`, `--calls`, `--bcn`,
+  `--patt3ch` or `--rtty-contests` (in a config file `data.cty`,
+  `data.scp`, `data.calls`, `data.bcn`, `data.patt3ch`, `rtty.contests`).
+- **Upload it** on the web page's Resources tab, as the admin (an admin
+  password set with `ADMIN_PASSWORD_HASH`, from an address `ADMIN_ALLOW`
+  lets in). Every file there also has *Save the copy in use*, to download
+  the one in use now as a starting point.
+
+Either way:
+
+- **Yours is never replaced by a download**, whether `FETCH` is on or off.
+  `FETCH: "false"` only stops the downloads of the files you have not given.
+- **It is checked first.** Every line must read as the file's (blank lines
+  and comments aside). A file that is not text, is empty, or has a line that
+  does not read is refused, saying which line and what is on it: a start
+  with such a named file stops, and an upload is refused with the copy in
+  use kept. An upload that is taken says what it holds: "346 entities",
+  "50,023 calls", "12 CQ words and 9 reports".
+- **Edit it and it is read again**, within a few seconds, with no restart,
+  on Linux and Windows alike. A change that does not read is not loaded:
+  the copy in use is kept, the log says why, and the Resources tab shows the
+  problem until the file is put right.
+- **An upload is kept** in `./cache/ubersdr-skimmer/own/` (or over the file
+  you named for it) and used at every start, before any download. *Remove
+  the upload* on the Resources tab takes it back from the next start.
 
 ## Ports
 
@@ -762,6 +817,33 @@ radios the RBN tab gives each radio's new calibration (its own times
 SM7IUN's factor). To tell one radio's error from another's, compare its
 spots with RBN's or a beacon's frequency.
 
+It can be changed while the skimmer runs, with no restart: the Config tab's
+*Frequency calibration* section shows each source's (each radio's) now and
+at the start, and the admin can put a new one in use at once, as a factor or
+ppm. It is applied where the IQ comes in, as if the radio itself were
+corrected, so every mode (CW, RTTY, JTTY, FT8, FT4, FT2, WSPR, JS8) and the
+spectrum move together, from the next moment on. Started from a config
+file, the new value is saved in it; from options or Docker it lasts until
+the next start (set `--freq-calibration` / `FREQ_CALIBRATION` to keep it).
+
+Reporting to RBN, the RBN tab's **Calibrate** button (the admin's; one for
+each radio) puts SM7IUN's correction from the previous day's spots in use
+the same way, at once: the calibration in use times SM7IUN's factor. It is
+refused if SM7IUN's list is more than 24 hours old, and allowed once per
+list and radio, restarts included, as a second press would add the
+correction to itself; the next day's list measures the result. A skew
+within 0.1 ppm is shown with a warning: probably not worth it, as that is
+within the expected margin of error.
+
+`AUTO_CALIBRATE: "true"` (`--auto-calibrate`; with radios, after the one
+radio it calibrates) does it by itself as each day's list comes in, with
+care: never from a list over 24 hours old or twice from one; only from 100
+spots or more and a skew over 0.1 ppm; only from a list measured while the
+calibration in use now was in use all that day (after any change it waits
+for the next list); and 75% of the correction at a time, at most 1 ppm a
+day, so a large error settles over a few days. The RBN tab and the log say
+what each list did, or why not.
+
 ### Sharing the IQ with CWSL tools
 
 As [CWSL_Tee](https://github.com/HrochL/CWSL) does, every receiver's IQ is put
@@ -1089,7 +1171,18 @@ spots:
                      (sm7iun.se, the web page's RBN tab), multiply this
                      by its correction factor; it shows from the second day on.
                      After an --hpsdr, --ka9q or --driver: that radio's alone,
-                     the one before any radio the others'
+                     the one before any radio the others'. It can be changed
+                     while running, every mode at once: the Config tab, or
+                     the RBN tab's Calibrate (SM7IUN's, once a list)
+  --auto-calibrate   with --rbn, calibrate by SM7IUN's skew each day as its
+                     list comes in, as the RBN tab's Calibrate does: never
+                     from a list over 24 hours old, nor twice from one; only
+                     from 100 spots or more, a skew over 0.1 ppm (within it
+                     is the margin of error), a list measured while the
+                     calibration now in use was; 75% of the correction a
+                     day, at most 1 ppm. With radios, give it after the one
+                     radio it calibrates (SM7IUN's skew is the call's, every
+                     radio together)
   --six-metres M     6 m in --bands: cw (50.000-50.100 alone, one stream
                      at iq192 or iq384), whole (50.400-50.500 too, as Skimmer
                      Server: two streams at iq192 or iq384) or off. By default whole,
@@ -1136,6 +1229,11 @@ spots:
   --max-rtty N       RTTY signals each band decodes at once, 1-1000 (default
                      100), shared by its streams; past it, new ones go
                      undecoded (logged, and the web page's RTTY bar full)
+  --tens-hz          RTTY spots' frequencies to 10 Hz (14083.45), as RTTY
+                     Skimmer Server's TensHz: on the RTTY and all-modes
+                     telnet ports and to RBN, which keeps the digit. By
+                     default 100 Hz (14083.5), as RTTY Skimmer Server's;
+                     CW's are always 100 Hz
   --no-jtty          decode no JTTY. By default WSJT-X 3.2's JTTY is decoded
                      on its dials (7.090, 14.090, 21.090, 28.090 MHz) wherever
                      a stream covers one (streams take a dial in where that
@@ -1285,10 +1383,27 @@ spots:
   --scp FILE         MASTER.SCP (default: live, the one fetched from Super
                      Check Partial at start and daily, else the one found
                      beside the program, else the one built in)
+  --bcn FILE         RBN's bcn.csv, the beacons /B calls are known by (default:
+                     live, the latest fetched, else the one found beside the
+                     program, else the one built in); a file given is used
+                     always and never fetched over
+  --patt3ch FILE     with --rbn, RBN's patt3ch.lst, the call shapes it takes
+                     (default: as bcn.csv's); a file given is used always and
+                     never fetched over
+                     A FILE given to --cty, --scp, --calls, --bcn, --patt3ch,
+                     --rtty-contests or --rbn-bad-calls is yours: used always, never fetched
+                     over (fetching on or off), checked line by line before
+                     the start (one that does not read stops it, saying
+                     which line), and read again within seconds of changing
+                     on disk (a change that does not read is not loaded: the
+                     copy in use is kept, and the web page says why). One
+                     uploaded on the web page's Resources tab (an admin's)
+                     is used the same way where none is named
   --no-fetch         live, do not fetch cty.dat, MASTER.SCP,
                      cluster-cw-calls.txt, bcn.csv or patt3ch.lst (nor the
                      RBN reporter); use the ones beside the program, else the
-                     ones built in (the latest there were at the build)
+                     ones built in (the latest there were at the build), never
+                     a copy fetched by a run before
   --version          print the version and exit
   --config FILE      take every setting from FILE, a JSON config file
                      (config-file.md beside the README); with no other option. With no
@@ -1332,7 +1447,10 @@ output:
   --rbn-bad-calls [FILE]
                      with --rbn, send no spot of a call in FILE (default
                      BadCalls.txt), one call a line, as RBN Aggregator's
-                     "Not in BadCalls.txt"; read again when it changes
+                     "Not in BadCalls.txt"; yours as the reference files
+                     named below are: checked line by line, read again when
+                     it changes; one not there yet holds none until it is.
+                     Without it, one uploaded on the web page is used
   --wsjtx PORT[:CAL] with --rbn, also spot FT8/FT4 CQs from WSJT-X on this UDP
                      port (calibration factor CAL, default 1); repeatable
   --agg-telnet PORT  with --rbn, the reporter's local-user telnet port (as

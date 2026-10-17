@@ -189,6 +189,7 @@ words listed), **path** (a string, rule 8).
 | `freq_hz` | number | `--freq` | one stream at this centre instead of `bands` |
 | `six_metres` | enum `cw` `whole` `off` | `--six-metres` | 6 m in `bands` (default whole) |
 | `freq_calibration` | number or string | `--freq-calibration` | every frequency times this: `1.000000468` or `"+0.5ppm"` |
+| `auto_calibrate` | bool | `--auto-calibrate` | with RBN, calibrate by SM7IUN's daily skew as each list comes in |
 | `radio_tab` | bool | `--no-radio` when `false` | a Radio tab on its own session (default true) |
 | `radio_password` | string | `--radio-password` | only a page that gives this tunes the Radio tab |
 
@@ -213,6 +214,7 @@ Every radio, of any kind:
 | `freq_hz` | number | `--freq` after the radio | one receiver at this centre instead |
 | `mode` | enum `iq48` `iq96` `iq192` `iq384` | `--mode` after the radio | its receivers' width (a driver: no iq384) |
 | `freq_calibration` | number or string | `--freq-calibration` after the radio | its own calibration |
+| `auto_calibrate` | bool | `--auto-calibrate` after the radio | with RBN, this radio's calibration by SM7IUN's daily skew (one radio only) |
 | `six_metres` | enum `cw` `whole` `off` | `--six-metres` after the radio | its own 6 m |
 
 `kind: "hpsdr"` adds:
@@ -317,6 +319,7 @@ otherwise (the command line's "before any radio").
 | `enabled` | bool | `--no-rtty` when `false` | decode and spot RTTY (default true) |
 | `filter` | bool | `--no-rtty-filter` when `false` | keep CW tracks off FSK (default true; RTTY needs it) |
 | `max_channels` | int 1-1000 | `--max-rtty` | RTTY signals a band decodes at once (default 100) |
+| `tens_hz` | bool | `--tens-hz` | spot frequencies to 10 Hz, as RTTY Skimmer Server's TensHz (default false: 100 Hz) |
 | `contests` | path | `--rtty-contests` | the contests' CQ words and reports |
 
 ### `jtty`
@@ -393,7 +396,7 @@ names (`W2`, `W15`, `F2`, `F5`, `F15`, `F30`) are taken too. Band names are
 | `dry_run` | bool | `--rbn-dry-run` | sign on and judge spots, upload none |
 | `call` | string | `--rbn-call` | the call RBN knows this skimmer by |
 | `patt3ch` | bool | `--no-patt3ch` when `false` | only calls of RBN's shapes (default true) |
-| `bad_calls` | bool or path | `--rbn-bad-calls [FILE]` | `true`: BadCalls.txt; a path: that file |
+| `bad_calls` | bool or path | `--rbn-bad-calls [FILE]` | `true`: BadCalls.txt; a path: that file. Checked line by line and read again when it changes, as `data`'s files; one not there yet holds no calls until it is |
 | `wsjtx` | array of `{ "port": int, "calibration": number }` | `--wsjtx PORT[:CAL]`, repeated | WSJT-X UDP sources of FT8/FT4 CQs |
 | `local_telnet_port` | int | `--agg-telnet` | the reporter's local-user telnet, as Aggregator's 7550 |
 
@@ -473,6 +476,14 @@ What goes to stdout.
 | `cty` | path | `--cty` | cty.dat |
 | `scp` | path | `--scp` | MASTER.SCP |
 | `calls` | path | `--calls` | the calls heard on the air, `CALL<tab>N` |
+| `bcn` | path | `--bcn` | RBN's beacon list, bcn.csv: yours, used always and never fetched over |
+| `patt3ch` | path | `--patt3ch` | RBN's call shapes, patt3ch.lst: yours, used always and never fetched over |
+
+Each file named here (and `rtty.contests`, `reporting.rbn.bad_calls`) is
+checked line by line before the start (one that does not read stops it,
+and the Config tab's check refuses it, saying which line) and read again
+whenever it changes on disk; a change that does not read keeps the copy in
+use. The README's "Your own reference files" has the rules.
 | `clear_cache` | bool | `--clear-cache` | empty the cache first, **every start** while it is set: for one start, use the command line |
 
 ## Examples
