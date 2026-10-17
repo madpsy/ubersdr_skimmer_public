@@ -137,6 +137,7 @@ as a config file (passwords left out).
 | `RBN` | `true` | report spots to the Reverse Beacon Network (as RBN Aggregator does); `false` turns it off. RBN needs the station's locator: without one (the receiver publishes no GPS locator and `LOCATOR` is unset) the reporter does not start, the log says so, and the skimmer runs on without it |
 | `RBN_DRY_RUN` | `false` | sign on to RBN and judge spots, but upload none |
 | `RBN_CALL` | `CALLSIGN` | the call RBN knows the skimmer by, its spots as `RBN_CALL-#` |
+| `RBN_MODES` | all | with `RBN`, the modes whose spots go to RBN, of `cw`, `rtty`, `ft8` and `ft4`, a comma between: `cw` sends CW alone, `rtty,ft8` no CW. The others are still skimmed and spotted everywhere else (telnet, PSK Reporter, the web page); with RTTY not sent, no RTTY skimmer signs on to RBN. The RBN tab shows which go, and counts those held back |
 | `RBN_BAD_CALLS` | `false` | `true`: send RBN no spot of a call in `./cache/BadCalls.txt` (as RBN Aggregator's "Not in BadCalls.txt"; the form under [The bad calls file](#the-bad-calls-file)), read again when edited; or a file's path in the container. The RBN tab's "Bad calls (manual)" shows the calls it held |
 | `WEB_PORT` | `6101` | the web page |
 | `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format, RTTY's spots on the next port (7301) in RTTY Skimmer Server's, JTTY's on 7302, every mode's on 7303; `0` turns them all off |
@@ -1441,6 +1442,12 @@ output:
   --rbn-dry-run      sign on to RBN and judge spots, but upload none
   --rbn-call CALL    the call RBN knows this skimmer by, its spots as
                      CALL-# (default --call)
+  --rbn-modes LIST   with --rbn, the modes whose spots go to RBN, of cw, rtty,
+                     ft8 and ft4 (default all of them): rtty,ft8 sends no CW
+                     spots, cw no RTTY, FT8 or FT4. They are skimmed and
+                     spotted elsewhere all the same (telnet, PSK Reporter,
+                     the web page); RTTY not sent, no RTTY skimmer signs on
+                     to RBN
   --no-patt3ch       with --rbn, also send calls that fit no shape in RBN's
                      patt3ch.lst (with QRZ lookups, a call QRZ knows is sent
                      regardless)

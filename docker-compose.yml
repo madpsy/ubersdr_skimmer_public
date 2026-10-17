@@ -18,6 +18,7 @@ services:
       # as CALLSIGN-# with the receiver's call, name, QTH and locator by
       # default; "false" turns it off
       RBN: "true"
+      # RBN_MODES: "cw,rtty,ft8,ft4"  # the modes whose spots go to RBN (default all); e.g. "cw" alone
       # Width of each IQ stream: iq48, iq96, iq192 or iq384; wider, fewer
       # streams (sessions) for the same bands
       IQ_MODE: "iq192"

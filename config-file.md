@@ -395,6 +395,7 @@ names (`W2`, `W15`, `F2`, `F5`, `F15`, `F30`) are taken too. Band names are
 | `enabled` | bool | `--rbn` | report spots to the Reverse Beacon Network |
 | `dry_run` | bool | `--rbn-dry-run` | sign on and judge spots, upload none |
 | `call` | string | `--rbn-call` | the call RBN knows this skimmer by |
+| `modes` | list | `--rbn-modes` | the modes whose spots go to RBN, of `"cw"`, `"rtty"`, `"ft8"`, `"ft4"` (default all; at least one) |
 | `patt3ch` | bool | `--no-patt3ch` when `false` | only calls of RBN's shapes (default true) |
 | `bad_calls` | bool or path | `--rbn-bad-calls [FILE]` | `true`: BadCalls.txt; a path: that file. Checked line by line and read again when it changes, as `data`'s files; one not there yet holds no calls until it is |
 | `wsjtx` | array of `{ "port": int, "calibration": number }` | `--wsjtx PORT[:CAL]`, repeated | WSJT-X UDP sources of FT8/FT4 CQs |
