@@ -83,6 +83,7 @@ services:
       # NOISE_FILTER: "true"  # "false": track signals in SSB, data and noise in the CW segments too
       # RTTY_FILTER: "true"   # "false": track signals on RTTY too
       # MAX_RTTY: "100"      # RTTY signals each band decodes at once (its streams share them)
+      # RTTY_ENGINE: "bayesian" # how RTTY's calls are read: bayesian (each character's bits weighed) or text
       # AUTO_CALIBRATE: "false" # "true": with RBN, calibrate by SM7IUN's daily skew as each list comes in
       # RTTY_TENS_HZ: "false" # "true": RTTY spots' frequencies to 10 Hz (14083.45), as RTTY Skimmer Server's TensHz
       # PSKREPORTER_ANTENNA: ""  # the antenna, as PSK Reporter shows it

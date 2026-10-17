@@ -1230,6 +1230,15 @@ spots:
   --max-rtty N       RTTY signals each band decodes at once, 1-1000 (default
                      100), shared by its streams; past it, new ones go
                      undecoded (logged, and the web page's RTTY bar full)
+  --rtty-engine E    how RTTY's calls are read from each signal: bayesian (the
+                     default) or text. bayesian labels every character as part
+                     of a call, a CQ, a DE, an exchange or noise from its bits'
+                     probabilities, merges each call's sightings bit by bit,
+                     weighs them by MASTER.SCP and patt3ch.lst, and keeps one
+                     call for each signal, spotted when it changes: CQ if a CQ
+                     is tied to it, DE if a DE is, else blank. text reads calls
+                     from the decoded text as CW's are read, over by over
+                     (rtty-contests.txt's CQ words), every call heard spotted
   --tens-hz          RTTY spots' frequencies to 10 Hz (14083.45), as RTTY
                      Skimmer Server's TensHz: on the RTTY and all-modes
                      telnet ports and to RBN, which keeps the digit. By
@@ -1473,10 +1482,12 @@ output:
   --wsjtx-out-id ID  the instance's Id there (default "UberSDR Skimmer")
   --wsjtx-out-ttl N  a multicast group's TTL (default 1, as WSJT-X)
   --pskreporter      report spots to PSK Reporter (pskreporter.info) as
-                     UberSDR reports its CW Skimmer's: every spot, as CW, at
-                     most once a call and band in 2 minutes, in a packet every
-                     18-38 s; as --psk-call, at the station's locator. Off
-                     by default; live only
+                     UberSDR reports its CW Skimmer's: every spot but CW's and
+                     RTTY's heard ones (a call read in another station's text
+                     need not have been received), as its mode, at most once
+                     a call and band in 2 minutes, in a packet every 18-38 s;
+                     as --psk-call, at the station's locator. Off by default;
+                     live only
   --psk-call CALL    the call reported as to PSK Reporter (default --call)
   --pskreporter-antenna TEXT
                      the antenna, as PSK Reporter shows it (default none)
