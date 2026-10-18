@@ -765,10 +765,13 @@ wizard saves starts. What that means at each step:
 
 **After that**, the Config tab of a skimmer run from a config file has
 **Edit settings**: the admin password, then the same sections, **All
-settings** (every key of this reference, each with its `--help`), the file as
-**JSON**, and the admin password changed. Each change is checked a moment
-later, each refusal shown at its key; **Save and restart** writes the file
-and restarts the skimmer from it. **Restart** alone is there too. The file
+settings** (every key of this reference, each with its `--help`), and the
+file as **JSON**. Each change is checked a moment later, each refusal shown
+at its key; **Save and restart** writes the file and restarts the skimmer
+from it. **Restart** alone is there too, and **Change admin password**: the
+current password and a new one, saved in the file at once, without a
+restart, every other logged-in page logged out. (Run from options, it says
+how instead: a new `--hash-password` hash for `--admin-password-hash`.) The file
 this run started from checks good as it is: the radios it is streaming from
 (which answer no discovery while it does) are taken as they answered at its
 start.
