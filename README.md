@@ -992,6 +992,14 @@ Analytics' WSPR section, but not sent). 2200 and 630 m WSPR need their band name
 `630`), 22 and 8 m a stream given by its centre (`13.5551`, `40.6812`, in
 MHz), and are not among `--wspr all`'s. Every option is below.
 
+The FT8, FT4, FT2 and JS8 dials are a built-in table until you change it:
+`--digital-dials` (`digital.dials` in the config file, or the Config tab's
+Digital dials, which writes it) replaces the table whole, each dial with its
+own depth if wanted, e.g. a DXpedition beside 20 m's usual FT8:
+`--digital-dials FT8:14074:deep,FT8:14080:normal,FT4:14080`. A dial no
+stream holds, or in no amateur band, is listed there with why it is not
+decoded and never stops the skimmer starting.
+
 ### JS8
 
 ```
@@ -1267,6 +1275,17 @@ spots:
                      after --telnet's and to PSK Reporter, never RBN
   --jtty BANDS       JTTY on these bands' dials only (40,20,15,10 or all;
                      default all)
+  --digital-dials T  the FT8, FT4, FT2 and JS8 dials, all of them, in place
+                     of the built-in ones: MODE:KHZ or MODE:KHZ:DEPTH,
+                     comma-separated (FT8:14074:deep,FT8:14080:normal,
+                     FT4:14080,JS8:7078); "defaults" the built-in table,
+                     "none" no dials. A mode with no entries has no dials.
+                     DEPTH (fast, normal, deep) is that dial's, else its
+                     mode's (--ft8-depth); JS8 takes none. Which bands are
+                     decoded is still --ft8's, --ft4's, --ft2's and --js8's;
+                     a dial no stream holds, or in no amateur band, is left
+                     out, said, never a reason not to start. WSPR's dials
+                     stay fixed
   --ft8 [BANDS]      decode FT8 on these bands' FT8 dials (20,40 or all;
                      default none) with WSJT-X's FT8 decoder built in (or
                      the jt9 program, --ft8-jt9); each must be

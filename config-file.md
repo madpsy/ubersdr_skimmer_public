@@ -125,6 +125,7 @@ the command line.
   "spots":          { ... },   // which spots go out, and how often
   "rtty":           { ... },
   "jtty":           { ... },
+  "digital":        { ... },   // the FT8, FT4, FT2 and JS8 dial table
   "ft":             { "ft8": { ... }, "ft4": { ... }, "ft2": { ... } },
   "js8":            { ... },
   "wspr":           { ... },   // WSPR and FST4W
@@ -331,6 +332,25 @@ otherwise (the command line's "before any radio").
 | `enabled` | bool | `--no-jtty` when `false` | (default true) |
 | `bands` | bands | `--jtty` | its dials on these bands only (default all) |
 
+### `digital`
+
+| Key | Type | Option | |
+|---|---|---|---|
+| `dials` | list of dials, or `"defaults"` | `--digital-dials` | every FT8, FT4, FT2 and JS8 dial, in place of the built-in ones (default the built-in table) |
+
+Each dial is `{ "mode": "FT8", "khz": 14074, "depth": "deep" }`: `mode` FT8,
+FT4, FT2 or JS8; `khz` the dial frequency in kHz; `depth` (`fast`, `normal`
+or `deep`, not for JS8) that dial's own, else its mode's (`ft.ft8.depth`).
+
+Once given, the list is **the whole table**: a mode with no dials in it has
+none, and `[]` has no digital dials at all. Left out, or `null`, the
+built-in table is used, and it follows the skimmer's releases. Which bands
+are decoded is still `ft.ft8.bands` and the rest. A dial in no amateur band,
+or that no stream holds, stays in the table but is not decoded, and the run
+still starts: the Config tab's Digital dials shows each dial and why it is
+not decoded. Editing the table there writes it whole into the file. WSPR's
+and FST4W's dials are fixed for now.
+
 ### `ft.ft8`, `ft.ft4`, `ft.ft2`
 
 The same keys in each.
@@ -338,7 +358,7 @@ The same keys in each.
 | Key | Type | Option | |
 |---|---|---|---|
 | `bands` | bands | `--ft8`, `--ft4`, `--ft2` | the bands decoded; `"skimmed"` is the option with no list (default none) |
-| `depth` | enum `fast` `normal` `deep` | `--ft8-depth`, `--ft4-depth`, `--ft2-depth` | (default normal) |
+| `depth` | enum `fast` `normal` `deep` | `--ft8-depth`, `--ft4-depth`, `--ft2-depth` | the dials without their own (`digital.dials`) (default normal) |
 | `threads` | int 1-64 | `--ft8-threads`, `--ft4-threads`, `--ft2-threads` | decodes at once (default half the cores, 2-4) |
 | `program` | bool | `--ft8-jt9`, `--ft4-jt9`, `--ft2-jt9` | decode with `programs.jt9`, not built in |
 
@@ -510,6 +530,28 @@ use. The README's "Your own reference files" has the rules.
 ```
 
 is `--wspr 20,40,80 --wspr-modes "20:W2 40:W2,F2,F5,F15,F30 80:F2,F5,F15,F30"`.
+
+### FT8 on a DXpedition's dial too
+
+```json
+{
+  "version": 1,
+  "source": { "ubersdr": { "url": "http://ubersdr:8080", "bands": ["40", "20"] } },
+  "digital": {
+    "dials": [
+      { "mode": "FT8", "khz": 7074 },
+      { "mode": "FT8", "khz": 14074, "depth": "deep" },
+      { "mode": "FT8", "khz": 14080, "depth": "normal" },
+      { "mode": "FT4", "khz": 14080 }
+    ]
+  },
+  "ft": { "ft8": { "bands": "skimmed" }, "ft4": { "bands": ["20"] } }
+}
+```
+
+is `--digital-dials FT8:7074,FT8:14074:deep,FT8:14080:normal,FT4:14080 --ft8 --ft4 20`:
+FT8 on 7.074, 14.074 (deep) and 14.080 (normal), and FT4 on 14.080. No
+other FT8, FT4, FT2 or JS8 dial exists for this run.
 
 ### The UberSDR addon, everything on
 
