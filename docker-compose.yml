@@ -80,6 +80,7 @@ services:
       # TELNET_PORT: "7300"   # DX-cluster telnet (CW Skimmer Server's format), RTTY's on the next port, JTTY's the one after; 0 = off
       # AGG_TELNET_PORT: ""   # with RBN, the reporter's local-user telnet (e.g. 7550)
       # FREQ_CALIBRATION: "1"  # multiply frequencies by SM7IUN's correction factor (web page, Analytics tab)
+      # CW_ENGINE: "text"     # how CW's calls are read: text (from the decoded text) or bayesian (letters labelled by a word model)
       # NOISE_FILTER: "true"  # "false": track signals in SSB, data and noise in the CW segments too
       # RTTY_FILTER: "true"   # "false": track signals on RTTY too
       # MAX_RTTY: "100"      # RTTY signals each band decodes at once (its streams share them)
