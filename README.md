@@ -34,8 +34,9 @@ running:
   that is on and to telnet port 7302 (not to RBN). `JTTY: "false"` turns it off.
 - **FT8, FT4 and FT2** (off by default): decoded on the bands asked
   for by WSJT-X's FT8 and FT4 decoders and WSJT-X improved's FT2, built in
-  (FT8 and FT4 the same decodes as WSJT-X's `jt9`, to the bit, in 35-40%
-  of its CPU at the default depth on x86-64 and half on a Pi 5; FT2 on that
+  (FT8 and FT4 the same decodes as WSJT-X's `jt9`, in 35-40% of its CPU
+  at the default depth on x86-64 and half on a Pi 5, and less again with
+  the faster subtraction and measured FFT plans they run with; FT2 on that
   FT4 decoder with improved's FT2 logic, in a quarter of improved's CPU
   at the default depth on x86-64, a third on a Pi 5);
   each band's latest cycle on the web page's FT8,
@@ -926,15 +927,17 @@ FT8 and FT4 are decoded inside the skimmer by jt9's own FT8 and FT4
 decoders (WSJT-X 3.2.0-rc1, commit `567ad29ce`) in C++, and FT2 as WSJT-X
 improved 3.2.0 decodes it (its FT2 code, on that FT4 decoder): no program started,
 one decoder a band on a thread of its own, given each cycle as WSJT-X gives
-jt9 it. Every decode, its order, SNR, DT, frequency and annotation are
-jt9's, checked against jt9 built from WSJT-X's source on hundreds of
+jt9 it. Run as WSJT-X runs them, every decode, its order, SNR, DT,
+frequency and annotation are jt9's, checked against jt9 built from WSJT-X's
+source on hundreds of
 recorded and generated periods, to the bit on x86-64 Linux and Windows (on
 a Pi, FFTW's ARM code rounds differently, and a few FT8 decodes near a
 threshold can go the other way; no FT4 or FT2 decode differed). FT2's
 reference is improved's FT2 code built on that FT4 decoder. CPU of the
 decoding alone, best of three, every decode the same (FT8: 17 periods, FT4:
 20, FT2: 25, busy and quiet, recorded and generated; FT2's busy periods are
-generated, as no FT2 was heard while recording):
+generated, as no FT2 was heard while recording; the skimmer itself runs
+them faster still, below):
 
 | CPU, WSJT-X's jt9 / built in | `fast` | `normal` (default) | `deep` |
 |---|---:|---:|---:|
@@ -960,13 +963,23 @@ its `jt9` finds a few decodes more or less and prints some 1 Hz, 0.1 s or
 This decoder is also a program of its own, a drop-in for WSJT-X's `wsprd`
 (the same options, output and files, byte for byte, plus `-n`), for Linux
 and Windows: [ubersdr_wsprd](https://github.com/madpsy/ubersdr_wsprd), with
-its source. The skimmer does not need it.
+its source. It has the built-in FST4W, FT8, FT4 and FT2 decoders as a `jt9`
+too, a drop-in for WSJT-X's `jt9` on WAV files. Both also read 32-bit float
+`.wav` files, with nothing rounded to 16 bits, and `jt9 --feed` (FT8, FT4
+and FT2) decodes a stream of files named on stdin with one decoder kept
+running; `jt9 --fast-subtract` gives up WSJT-X's output to the bit, but not
+its decodes, for less CPU. The skimmer does not need either.
 
 ### FT8, FT4, FT2 and WSPR
 
 FT8, FT4, FT2, WSPR and FST4W need nothing installed: WSJT-X's FT8 and
 FT4 decoders, WSJT-X improved's FT2, `wsprd` and jt9's FST4W decoder are
-built in, the same decodes in memory. `--ft8-jt9`, `--ft4-jt9`,
+built in, the same decodes in memory. FT8, FT4 and FT2 subtract each
+decoded signal the faster way (`jt9 --fast-subtract`'s), and every built-in
+decoder's FFTs are measured for this machine (`jt9 -w 2`'s; the first start
+takes a little longer, the plans then kept with the other FFTW wisdom): the
+same decodes as WSJT-X's for 15-35% less CPU on FT8 and 25-30% on FT4, but
+not its output to the bit. `--ft8-jt9`, `--ft4-jt9`,
 `--ft2-jt9`, `--wsprd PATH` and `--fst4w-jt9` run the programs instead:
 WSJT-X's `jt9` (`apt install wsjtx` has it, in `/usr/bin`; on Windows,
 WSJT-X's installer puts it in `C:\WSJT\wsjtx\bin`, where it is looked
