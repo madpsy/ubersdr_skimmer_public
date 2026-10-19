@@ -837,14 +837,17 @@ correction to itself; the next day's list measures the result. A skew
 within 0.1 ppm is shown with a warning: probably not worth it, as that is
 within the expected margin of error.
 
-`AUTO_CALIBRATE: "true"` (`--auto-calibrate`; with radios, after the one
-radio it calibrates) does it by itself as each day's list comes in, with
+`AUTO_CALIBRATE: "true"` (`--auto-calibrate`; with radios, after each radio
+it calibrates, or before any radio for every radio) does it by itself as each day's list comes in, with
 care: never from a list over 24 hours old or twice from one; only from 100
 spots or more and a skew over 0.1 ppm; only from a list measured while the
 calibration in use now was in use all that day (after any change it waits
 for the next list); and 75% of the correction at a time, at most 1 ppm a
-day, so a large error settles over a few days. The RBN tab and the log say
-what each list did, or why not.
+day, so a large error settles over a few days. A first start calibrates by
+the next list. A calibration changed while running (by this, Calibrate or
+the Config tab) is kept over restarts and updates while the skimmer is
+started with the same `FREQ_CALIBRATION` as before. The RBN tab and the log
+say what each list did, or why not.
 
 ### Sharing the IQ with CWSL tools
 
@@ -1202,9 +1205,10 @@ spots:
                      from 100 spots or more, a skew over 0.1 ppm (within it
                      is the margin of error), a list measured while the
                      calibration now in use was; 75% of the correction a
-                     day, at most 1 ppm. With radios, give it after the one
-                     radio it calibrates (SM7IUN's skew is the call's, every
-                     radio together)
+                     day, at most 1 ppm. With radios: after a radio, that
+                     radio's (any number of them); before any radio, every
+                     radio's. SM7IUN's skew is the call's, every radio
+                     together: give it to those that share the error
   --six-metres M     6 m in --bands: cw (50.000-50.100 alone, one stream
                      at iq192 or iq384), whole (50.400-50.500 too, as Skimmer
                      Server: two streams at iq192 or iq384) or off. By default whole,

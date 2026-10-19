@@ -215,7 +215,7 @@ Every radio, of any kind:
 | `freq_hz` | number | `--freq` after the radio | one receiver at this centre instead |
 | `mode` | enum `iq48` `iq96` `iq192` `iq384` | `--mode` after the radio | its receivers' width (a driver: no iq384) |
 | `freq_calibration` | number or string | `--freq-calibration` after the radio | its own calibration |
-| `auto_calibrate` | bool | `--auto-calibrate` after the radio | with RBN, this radio's calibration by SM7IUN's daily skew (one radio only) |
+| `auto_calibrate` | bool | `--auto-calibrate` after the radio | with RBN, this radio's calibration by SM7IUN's daily skew (any number of radios; `radio_defaults`' for every radio) |
 | `six_metres` | enum `cw` `whole` `off` | `--six-metres` after the radio | its own 6 m |
 
 `kind: "hpsdr"` adds:
