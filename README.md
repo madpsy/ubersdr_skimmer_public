@@ -198,12 +198,25 @@ was built), so it has them before, or without, any download; the web page's
 Reference files and Config tabs say which copy is in use for each: fetched
 online, built in or a local file.
 
+### Spots kept over a restart
+
+The spots of the last 24 hours (the Analytics, Map, Lookup, NCDXF and Beacons
+tabs) are saved beside the config file and put back at the next start:
+`config-spots.bin` beside `config.json` (a `--config FILE` run's
+`FILE-spots.bin`), or `spots.bin` in the same directory when started with
+options. Saved every 5 minutes, only the spots new since the last save (24
+bytes each), and in full when the program stops. A disk that is full,
+read-only or slow costs the saved spots and nothing else, and a file that is
+broken is read as far as it is whole, else started afresh. In Docker it is in
+`/data/config`, the compose file's `./config` volume, so it is kept over an
+update too.
+
 ### A config file instead
 
 Every setting can be in one JSON file instead of these variables or a command
 line: [config-file.md](config-file.md) has its rules, every key and examples.
-In the compose file, uncomment `CONFIG` and the `./config:/data/config`
-volume; the file is then `~/ubersdr/skimmer/config/ubersdr-skimmer/config.json`.
+In the compose file, uncomment `CONFIG`; the file is then (in the
+`./config:/data/config` volume) `~/ubersdr/skimmer/config/ubersdr-skimmer/config.json`.
 The program run yourself reads `~/.config/ubersdr-skimmer/config.json`
 (Windows: `%APPDATA%\ubersdr-skimmer\config.json`) when started with no
 arguments (with none there, its web page on port 9101 is a [setup

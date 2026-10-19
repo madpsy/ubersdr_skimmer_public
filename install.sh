@@ -43,6 +43,8 @@ docker compose version >/dev/null 2>&1 || die "docker compose plugin not found â
 mkdir -p "${INSTALL_DIR}"
 mkdir -p "${INSTALL_DIR}/cache"
 chmod a+rwx "${INSTALL_DIR}/cache"
+mkdir -p "${INSTALL_DIR}/config"
+chmod a+rwx "${INSTALL_DIR}/config"
 cd "${INSTALL_DIR}"
 
 # ---------------------------------------------------------------------------

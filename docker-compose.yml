@@ -102,14 +102,14 @@ services:
       #                       # RTTY_CONTESTS_FILE ("true": the file of that name in ./cache, or a path); never fetched over
       # EXTRA_ARGS: ""        # anything else (see: docker exec skimmer ubersdr-skimmer --help)
       # CONFIG: "/data/config/ubersdr-skimmer/config.json"  # settings from a config file
-      #                     # instead of these variables (see the README); with the
-      #                     # ./config volume below, the file is
+      #                     # instead of these variables (see the README): the file is
       #                     # ./config/ubersdr-skimmer/config.json beside this one
     volumes:
       # Fetched cty.dat/MASTER.SCP/RBN lists, FFTW wisdom and RBN state
       - ./cache:/data/cache
-      # With CONFIG: the config file's directory
-      # - ./config:/data/config
+      # The spots of the last 24 hours, kept over a restart or an update
+      # (and with CONFIG, the config file's directory)
+      - ./config:/data/config
     # The telnet port is reachable from the other containers as skimmer:7300,
     # RTTY's spots (RTTY Skimmer Server's format) as skimmer:7301, JTTY's
     # as skimmer:7302, every mode's as skimmer:7303.
