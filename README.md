@@ -1180,7 +1180,9 @@ input:
                      (default: radiod's)
   --ka9q-agc-threshold DB
                      its threshold, dB (default: radiod's)
-  --input FILE       raw interleaved IQ ('-' for stdin)
+  --input FILE       raw interleaved IQ ('-' for stdin); FILE,FILE,... (with
+                     --freq HZ,HZ,...) the receivers of one radio, recorded
+                     together (--record's FILE-KHZ files), read side by side
   --format F         cf32 (default) or cs16, for --input
   --rate HZ          sample rate, for --input
   --record FILE      also write the live IQ to FILE as cf32
