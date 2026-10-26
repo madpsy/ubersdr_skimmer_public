@@ -813,8 +813,9 @@ ubersdr-skimmer-windows-x86_64.exe --call M9PSY ^
 ### Frequency calibration for each radio
 
 `--freq-calibration F` (`FREQ_CALIBRATION` in Docker) multiplies every
-frequency by F, as CW Skimmer Server's `FreqCalibration` does: a factor
-(`1.000000468`) or ppm (`+0.5ppm`). Each radio has its own reference
+frequency by F (over 1 raises them): a factor (`1.000000468`) or ppm
+(`+0.5ppm`). CW Skimmer Server's `FreqCalibration` works the other way, so a
+value taken from a `SkimSrv.ini` is 1 over it here. Each radio has its own reference
 oscillator, so its own error: a `--freq-calibration` after an `--hpsdr`,
 `--ka9q` or `--driver` is that radio's alone, and one before any radio is
 the default for those given none.
@@ -828,7 +829,7 @@ ubersdr-skimmer-linux-x86_64 --call M9PSY --freq-calibration +0.4ppm \
 The first radio takes the default, +0.4 ppm; the second, -1.2 ppm. The
 log and the Config tab (a row for each radio) say which applies. SM7IUN
 measures one error for the whole call, all radios together; with several
-radios the RBN tab gives each radio's new calibration (its own times
+radios the RBN tab gives each radio's new calibration (its own over
 SM7IUN's factor). To tell one radio's error from another's, compare its
 spots with RBN's or a beacon's frequency.
 
@@ -841,26 +842,39 @@ spectrum move together, from the next moment on. Started from a config
 file, the new value is saved in it; from options or Docker it lasts until
 the next start (set `--freq-calibration` / `FREQ_CALIBRATION` to keep it).
 
+SM7IUN's factor is our frequency over that of trusted skimmers, averaged
+over the previous day's spots: a positive skew reads high, and the
+correction divides by the factor. (Until 2026-10-26 the skimmer multiplied
+by it, so automatic calibration made the error bigger each day; the first
+start of a fixed version undoes those corrections once, keeping any change
+made by hand, and says so in the log.)
+
 Reporting to RBN, the RBN tab's **Calibrate** button (the admin's; one for
 each radio) puts SM7IUN's correction from the previous day's spots in use
-the same way, at once: the calibration in use times SM7IUN's factor. It is
-refused if SM7IUN's list is more than 24 hours old, and allowed once per
-list and radio, restarts included, as a second press would add the
-correction to itself; the next day's list measures the result. A skew
-within 0.1 ppm is shown with a warning: probably not worth it, as that is
-within the expected margin of error.
+the same way, at once: the calibration in use over SM7IUN's factor. It is
+refused if SM7IUN's list is more than 24 hours old, or measured a day the
+calibration in use now was not in use all of (so never twice from one
+list); the next day's list measures the result. A skew within 0.1 ppm is
+shown with a warning: probably not worth it, as that is within the expected
+margin of error.
+
+When each calibration was put in use is what tells which list measured it.
+Started from a config file, a change while running is saved with the time,
+`freq_calibration_since` (`--freq-calibration-since 2026-10-26T00:20:31Z`,
+UTC), beside `freq_calibration`. Otherwise the skimmer keeps it in its
+cache; a value it has never seen (given anew, or the file edited) counts
+from the start. The Config tab shows it.
 
 `AUTO_CALIBRATE: "true"` (`--auto-calibrate`; with radios, after each radio
 it calibrates, or before any radio for every radio) does it by itself as each day's list comes in, with
-care: never from a list over 24 hours old or twice from one; only from 100
-spots or more and a skew over 0.1 ppm; only from a list measured while the
-calibration in use now was in use all that day (after any change it waits
-for the next list); and 75% of the correction at a time, at most 1 ppm a
-day, so a large error settles over a few days. A first start calibrates by
-the next list. A calibration changed while running (by this, Calibrate or
-the Config tab) is kept over restarts and updates while the skimmer is
-started with the same `FREQ_CALIBRATION` as before. The RBN tab and the log
-say what each list did, or why not.
+care: never from a list over 24 hours old; only from 100 spots or more and
+a skew over 0.1 ppm; only from a list measuring a day the calibration in
+use now was in use all of (from its first hour); and 75% of the correction
+at a time, at most 1 ppm, so a large error settles over a few days, a step
+a day. A first start calibrates by the next list. A calibration changed
+while running (by this, Calibrate or the Config tab) is kept over restarts
+and updates while the skimmer is started with the same `FREQ_CALIBRATION`
+as before. The RBN tab and the log say what each list did, or why not.
 
 ### Sharing the IQ with CWSL tools
 
@@ -1205,25 +1219,34 @@ spots:
                      signal), unless as a CQ after a DE or blank spot, or a
                      DE after a blank one; 0 for no hold (default 5)
   --freq-calibration F
-                     multiply every spot's frequency by F, as Skimmer Server's
-                     FreqCalibration (default 1). F is a factor (1.000000468)
-                     or ppm (+0.5ppm, the same). To take SM7IUN's suggestion
-                     (sm7iun.se, the web page's RBN tab), multiply this
-                     by its correction factor; it shows from the second day on.
-                     After an --hpsdr, --ka9q or --driver: that radio's alone,
-                     the one before any radio the others'. It can be changed
-                     while running, every mode at once: the Config tab, or
-                     the RBN tab's Calibrate (SM7IUN's, once a list)
+                     multiply every spot's frequency by F (default 1): over
+                     1 raises them. F is a factor (1.000000468) or ppm
+                     (+0.5ppm, the same). Not Skimmer Server's FreqCalibration,
+                     which works the other way: to take SM7IUN's suggestion
+                     (sm7iun.se, the web page's RBN tab), divide this by its
+                     correction factor (our frequency over the reference's);
+                     it shows from the second day on. After an --hpsdr,
+                     --ka9q or --driver: that radio's alone, the one before
+                     any radio the others'. It can be changed while running,
+                     every mode at once: the Config tab, or the RBN tab's
+                     Calibrate (SM7IUN's, once a list)
+  --freq-calibration-since TIME
+                     the --freq-calibration given has been in use since TIME
+                     (UTC, 2026-10-26T00:20:31Z): which of SM7IUN's lists
+                     measured it. Saved beside it in the config file when the
+                     calibration changes while running; without it, the time
+                     the skimmer last saw it change, or long before if it
+                     never did. After a radio: that radio's
   --auto-calibrate   with --rbn, calibrate by SM7IUN's skew each day as its
                      list comes in, as the RBN tab's Calibrate does: never
-                     from a list over 24 hours old, nor twice from one; only
-                     from 100 spots or more, a skew over 0.1 ppm (within it
-                     is the margin of error), a list measured while the
-                     calibration now in use was; 75% of the correction a
-                     day, at most 1 ppm. With radios: after a radio, that
-                     radio's (any number of them); before any radio, every
-                     radio's. SM7IUN's skew is the call's, every radio
-                     together: give it to those that share the error
+                     from a list over 24 hours old; only from 100 spots or
+                     more, a skew over 0.1 ppm (within it is the margin of
+                     error), a list measuring a day the calibration now in
+                     use was in use all of (from its first hour on); 75% of
+                     the correction a day, at most 1 ppm. With radios: after
+                     a radio, that radio's (any number of them); before any
+                     radio, every radio's. SM7IUN's skew is the call's, every
+                     radio together: give it to those that share the error
   --six-metres M     6 m in --bands: cw (50.000-50.100 alone, one stream
                      at iq192 or iq384), whole (50.400-50.500 too, as Skimmer
                      Server: two streams at iq192 or iq384) or off. By default whole,

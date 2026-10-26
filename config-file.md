@@ -190,6 +190,7 @@ words listed), **path** (a string, rule 8).
 | `freq_hz` | number | `--freq` | one stream at this centre instead of `bands` |
 | `six_metres` | enum `cw` `whole` `off` | `--six-metres` | 6 m in `bands` (default whole) |
 | `freq_calibration` | number or string | `--freq-calibration` | every frequency times this: `1.000000468` or `"+0.5ppm"` |
+| `freq_calibration_since` | string | `--freq-calibration-since` | when it was put in use, UTC `"2026-10-26T00:20:31Z"`: written with it when the calibration changes while running |
 | `auto_calibrate` | bool | `--auto-calibrate` | with RBN, calibrate by SM7IUN's daily skew as each list comes in |
 | `radio_tab` | bool | `--no-radio` when `false` | a Radio tab on its own session (default true) |
 | `radio_password` | string | `--radio-password` | only a page that gives this tunes the Radio tab |
@@ -203,6 +204,7 @@ words listed), **path** (a string, rule 8).
 | `rate_hz` | number | `--rate` | its sample rate (required) |
 | `freq_hz` | number | `--freq` | its centre frequency (required) |
 | `freq_calibration` | number or string | `--freq-calibration` | every frequency times this, as a receiver's |
+| `freq_calibration_since` | string | `--freq-calibration-since` | when it was put in use (UTC) |
 
 ### `source.radios[]`
 
@@ -215,6 +217,7 @@ Every radio, of any kind:
 | `freq_hz` | number | `--freq` after the radio | one receiver at this centre instead |
 | `mode` | enum `iq48` `iq96` `iq192` `iq384` | `--mode` after the radio | its receivers' width (a driver: no iq384) |
 | `freq_calibration` | number or string | `--freq-calibration` after the radio | its own calibration |
+| `freq_calibration_since` | string | `--freq-calibration-since` after the radio | when it was put in use (UTC): written with it when it changes while running |
 | `auto_calibrate` | bool | `--auto-calibrate` after the radio | with RBN, this radio's calibration by SM7IUN's daily skew (any number of radios; `radio_defaults`' for every radio) |
 | `six_metres` | enum `cw` `whole` `off` | `--six-metres` after the radio | its own 6 m |
 
@@ -267,6 +270,7 @@ otherwise (the command line's "before any radio").
 |---|---|---|---|
 | `mode` | enum | `--mode` before any radio | |
 | `freq_calibration` | number or string | `--freq-calibration` before any radio | |
+| `freq_calibration_since` | string | `--freq-calibration-since` before any radio | |
 | `six_metres` | enum `cw` `whole` `off` | `--six-metres` before any radio | |
 | `radio_tab` | bool | `--no-radio` before any radio when `false` | |
 | `radio_password` | string | `--radio-password` before any radio | |
