@@ -151,7 +151,7 @@ as a config file (passwords left out).
 | `QRZ_USER`, `QRZ_PASSWORD` | | a [QRZ.com](https://www.qrz.com) login with an XML Data subscription: each call spotted is looked up (10,000 kept, the least recently spotted forgotten first), placing it on the web page's Map tab and giving its grid square to PSK Reporter. Checked at startup: if QRZ refuses it, the log and the Map tab say so and the skimmer runs on without. Not needed as an addon: the calls are asked of UberSDR's own lookups (its `lookup_services`, with `skimmer` among its `trusted_containers`), these used only if UberSDR serves none. Commented out in the compose file: uncomment and set them |
 | `QRZ_VALIDATE` | `false` | `true`, with QRZ lookups (UberSDR's, or `QRZ_USER` and `QRZ_PASSWORD`): spot only calls QRZ knows. A call QRZ does not know is not spotted (and asked again after a day); a spot waits up to 10 s for QRZ's answer. When QRZ cannot answer (down, an error, too slow) the spot goes out as without it, and the call is asked again at its next spot. Beacons are not checked |
 | `AUTO_CALIBRATE` | `false` | `true`: with `RBN`, calibrate the frequency by SM7IUN's skew as each day's list comes in ([Frequency calibration for each radio](#frequency-calibration-for-each-radio): its rules) |
-| `FREQ_CALIBRATION` | `1` | every frequency is multiplied by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's RBN tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it. With radios in `EXTRA_ARGS`, this is the default; a `--freq-calibration` after a radio there is that radio's ([Frequency calibration for each radio](#frequency-calibration-for-each-radio)) |
+| `FREQ_CALIBRATION` | `1` | how far the radio reads high: every frequency is divided by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's RBN tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it. With radios in `EXTRA_ARGS`, this is the default; a `--freq-calibration` after a radio there is that radio's ([Frequency calibration for each radio](#frequency-calibration-for-each-radio)) |
 | `NOISE_FILTER` | `true` | keep tracks off SSB, data, noise and swept carriers in the CW segments (shown tinted on the web page); `false` tracks them as any signal |
 | `GAP_FILL` | `true` | silence where the UberSDR's packets went missing (found by their timestamps), so WSPR and FT keep time; `false` passes the stream as it comes |
 | `RTTY_FILTER` | `true` | find RTTY (two-tone FSK at the usual shifts) anywhere in the band but the digital modes' windows and keep tracks off it and its sidebands, which CW decoders otherwise read callsigns out of (shown tinted on the web page, with its shift). `false` tracks it as any signal, and decodes no RTTY |
@@ -812,10 +812,10 @@ ubersdr-skimmer-windows-x86_64.exe --call M9PSY ^
 
 ### Frequency calibration for each radio
 
-`--freq-calibration F` (`FREQ_CALIBRATION` in Docker) multiplies every
-frequency by F (over 1 raises them): a factor (`1.000000468`) or ppm
-(`+0.5ppm`). CW Skimmer Server's `FreqCalibration` works the other way, so a
-value taken from a `SkimSrv.ini` is 1 over it here. Each radio has its own reference
+`--freq-calibration F` (`FREQ_CALIBRATION` in Docker) is how far the radio
+reads high: every frequency is divided by F, so over 1 lowers them. It is a
+factor (`1.000000468`) or ppm (`+0.5ppm`), and works as CW Skimmer Server's
+`FreqCalibration`: a value from a `SkimSrv.ini` can be used as it is. Each radio has its own reference
 oscillator, so its own error: a `--freq-calibration` after an `--hpsdr`,
 `--ka9q` or `--driver` is that radio's alone, and one before any radio is
 the default for those given none.
@@ -829,7 +829,7 @@ ubersdr-skimmer-linux-x86_64 --call M9PSY --freq-calibration +0.4ppm \
 The first radio takes the default, +0.4 ppm; the second, -1.2 ppm. The
 log and the Config tab (a row for each radio) say which applies. SM7IUN
 measures one error for the whole call, all radios together; with several
-radios the RBN tab gives each radio's new calibration (its own over
+radios the RBN tab gives each radio's new calibration (its own times
 SM7IUN's factor). To tell one radio's error from another's, compare its
 spots with RBN's or a beacon's frequency.
 
@@ -844,14 +844,12 @@ the next start (set `--freq-calibration` / `FREQ_CALIBRATION` to keep it).
 
 SM7IUN's factor is our frequency over that of trusted skimmers, averaged
 over the previous day's spots: a positive skew reads high, and the
-correction divides by the factor. (Until 2026-10-26 the skimmer multiplied
-by it, so automatic calibration made the error bigger each day; the first
-start of a fixed version undoes those corrections once, keeping any change
-made by hand, and says so in the log.)
+correction multiplies the calibration by the factor, as SM7IUN's page says
+for Skimmer Server.
 
 Reporting to RBN, the RBN tab's **Calibrate** button (the admin's; one for
 each radio) puts SM7IUN's correction from the previous day's spots in use
-the same way, at once: the calibration in use over SM7IUN's factor. It is
+the same way, at once: the calibration in use times SM7IUN's factor. It is
 refused if SM7IUN's list is more than 24 hours old, or measured a day the
 calibration in use now was not in use all of (so never twice from one
 list); the next day's list measures the result. A skew within 0.1 ppm is
@@ -1219,13 +1217,13 @@ spots:
                      signal), unless as a CQ after a DE or blank spot, or a
                      DE after a blank one; 0 for no hold (default 5)
   --freq-calibration F
-                     multiply every spot's frequency by F (default 1): over
-                     1 raises them. F is a factor (1.000000468) or ppm
-                     (+0.5ppm, the same). Not Skimmer Server's FreqCalibration,
-                     which works the other way: to take SM7IUN's suggestion
-                     (sm7iun.se, the web page's RBN tab), divide this by its
-                     correction factor (our frequency over the reference's);
-                     it shows from the second day on. After an --hpsdr,
+                     how far the radio reads high: every spot's frequency is
+                     divided by F (default 1), so over 1 lowers them. F is a
+                     factor (1.000000468) or ppm (+0.5ppm, the same), as
+                     Skimmer Server's FreqCalibration: to take SM7IUN's
+                     suggestion (sm7iun.se, the web page's RBN tab), multiply
+                     this by its correction factor (our frequency over the
+                     reference's); it shows from the second day on. After an --hpsdr,
                      --ka9q or --driver: that radio's alone, the one before
                      any radio the others'. It can be changed while running,
                      every mode at once: the Config tab, or the RBN tab's

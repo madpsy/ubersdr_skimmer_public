@@ -79,7 +79,7 @@ services:
       # WEB_PORT: "6101"      # the web page, proxied by UberSDR at /addon/skimmer/
       # TELNET_PORT: "7300"   # DX-cluster telnet (CW Skimmer Server's format), RTTY's on the next port, JTTY's the one after; 0 = off
       # AGG_TELNET_PORT: ""   # with RBN, the reporter's local-user telnet (e.g. 7550)
-      # FREQ_CALIBRATION: "1"  # frequencies times this; SM7IUN's: this over its correction factor (RBN tab)
+      # FREQ_CALIBRATION: "1"  # how far the radio reads high: frequencies divided by this, as Skimmer Server's FreqCalibration; SM7IUN's: this times its correction factor (RBN tab)
       # CW_ENGINE: "text"     # how CW's calls are read: text (from the decoded text) or bayesian (letters labelled by a word model)
       # NOISE_FILTER: "true"  # "false": track signals in SSB, data and noise in the CW segments too
       # RTTY_FILTER: "true"   # "false": track signals on RTTY too

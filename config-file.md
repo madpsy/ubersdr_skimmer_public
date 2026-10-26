@@ -189,7 +189,7 @@ words listed), **path** (a string, rule 8).
 | `bands` | bands | `--bands` | the bands skimmed, `"all"` or a list |
 | `freq_hz` | number | `--freq` | one stream at this centre instead of `bands` |
 | `six_metres` | enum `cw` `whole` `off` | `--six-metres` | 6 m in `bands` (default whole) |
-| `freq_calibration` | number or string | `--freq-calibration` | every frequency times this: `1.000000468` or `"+0.5ppm"` |
+| `freq_calibration` | number or string | `--freq-calibration` | how far the radio reads high, every frequency divided by it (as Skimmer Server's `FreqCalibration`): `1.000000468` or `"+0.5ppm"` |
 | `freq_calibration_since` | string | `--freq-calibration-since` | when it was put in use, UTC `"2026-10-26T00:20:31Z"`: written with it when the calibration changes while running |
 | `auto_calibrate` | bool | `--auto-calibrate` | with RBN, calibrate by SM7IUN's daily skew as each list comes in |
 | `radio_tab` | bool | `--no-radio` when `false` | a Radio tab on its own session (default true) |
@@ -203,7 +203,7 @@ words listed), **path** (a string, rule 8).
 | `format` | enum `cf32` `cs16` | `--format` | (default cf32) |
 | `rate_hz` | number | `--rate` | its sample rate (required) |
 | `freq_hz` | number | `--freq` | its centre frequency (required) |
-| `freq_calibration` | number or string | `--freq-calibration` | every frequency times this, as a receiver's |
+| `freq_calibration` | number or string | `--freq-calibration` | every frequency divided by this, as a receiver's |
 | `freq_calibration_since` | string | `--freq-calibration-since` | when it was put in use (UTC) |
 
 ### `source.radios[]`
