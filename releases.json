@@ -1,0 +1,11 @@
+{
+ "releases": [
+  {
+   "version": "v2026.10.27-2",
+   "date": "2026-10-27",
+   "fixed": [
+    "a sign-off run together, like \"TU ES 73 DE N9PWY\", was spotted as a bogus call (ES73DE)"
+   ]
+  }
+ ]
+}
