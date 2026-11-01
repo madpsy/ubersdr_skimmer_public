@@ -1,6 +1,13 @@
 {
  "releases": [
   {
+   "version": "v2026.11.01",
+   "date": "2026-11-01",
+   "fixed": [
+    "after a cold boot, the RBN reporter (and its local telnet port, such as 7550) did not start when the skimmer came up before UberSDR, until the skimmer was restarted"
+   ]
+  },
+  {
    "version": "v2026.10.27-3",
    "date": "2026-10-27",
    "fixed": [
