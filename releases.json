@@ -1,10 +1,11 @@
 {
  "releases": [
   {
-   "version": "v2026.11.01",
+   "version": "v2026.11.01-2",
    "date": "2026-11-01",
    "fixed": [
-    "after a cold boot, the RBN reporter (and its local telnet port, such as 7550) did not start when the skimmer came up before UberSDR, until the skimmer was restarted"
+    "after a cold boot, the RBN reporter (and its local telnet port, such as 7550) did not start when the skimmer came up before UberSDR, until the skimmer was restarted",
+    "a weak beacon not in RBN's list was also spotted under a misread call one character off (M7KWQ/B beside W7KWQ/B on the same frequency)"
    ]
   },
   {
