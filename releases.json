@@ -1,10 +1,11 @@
 {
  "releases": [
   {
-   "version": "v2026.11.03",
+   "version": "v2026.11.03-2",
    "date": "2026-11-03",
    "fixed": [
-    "the Analytics tab's WSPR noise and decoders charts, and everything on the RF tab, started empty again after every restart or update"
+    "the Analytics tab's WSPR noise and decoders charts, and everything on the RF tab, started empty again after every restart or update",
+    "on a Hermes Lite 2 (or another radio whose receivers fold in each other's signals) a weak copy of a signal 192 kHz away could still be spotted, such as a beacon on 28.2048 MHz also spotted on 28.0128"
    ]
   },
   {
