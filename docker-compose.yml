@@ -107,8 +107,9 @@ services:
     volumes:
       # Fetched cty.dat/MASTER.SCP/RBN lists, FFTW wisdom and RBN state
       - ./cache:/data/cache
-      # The spots of the last 24 hours, kept over a restart or an update
-      # (and with CONFIG, the config file's directory)
+      # The spots of the last 24 hours and the Analytics and RF tabs' charts,
+      # kept over a restart or an update (and with CONFIG, the config
+      # file's directory)
       - ./config:/data/config
     # The telnet port is reachable from the other containers as skimmer:7300,
     # RTTY's spots (RTTY Skimmer Server's format) as skimmer:7301, JTTY's

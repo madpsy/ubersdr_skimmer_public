@@ -198,7 +198,7 @@ was built), so it has them before, or without, any download; the web page's
 Reference files and Config tabs say which copy is in use for each: fetched
 online, built in or a local file.
 
-### Spots kept over a restart
+### Spots and charts kept over a restart
 
 The spots of the last 24 hours (the Analytics, Map, Lookup, NCDXF and Beacons
 tabs) are saved beside the config file and put back at the next start:
@@ -207,9 +207,13 @@ tabs) are saved beside the config file and put back at the next start:
 options. Saved every 5 minutes, only the spots new since the last save (24
 bytes each), and in full when the program stops. A disk that is full,
 read-only or slow costs the saved spots and nothing else, and a file that is
-broken is read as far as it is whole, else started afresh. In Docker it is in
-`/data/config`, the compose file's `./config` volume, so it is kept over an
-update too.
+broken is read as far as it is whole, else started afresh. Beside it, each
+saved whole: the Analytics tab's WSPR noise (`spots-wspr-noise.bin`) and
+decoders over time (`spots-decoders.bin`) every 5 minutes, and the RF tab's
+day (`spots-rf.bin`, some 350 kB a stream) every 30 minutes, all when the
+program stops; a stream's RF record is put back only if the stream covers
+the same frequencies. In Docker they are in `/data/config`, the compose
+file's `./config` volume, so they are kept over an update too.
 
 ### A config file instead
 
