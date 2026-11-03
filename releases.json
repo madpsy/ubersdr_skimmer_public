@@ -1,6 +1,13 @@
 {
  "releases": [
   {
+   "version": "v2026.11.03",
+   "date": "2026-11-03",
+   "fixed": [
+    "the Analytics tab's WSPR noise and decoders charts, and everything on the RF tab, started empty again after every restart or update"
+   ]
+  },
+  {
    "version": "v2026.11.01-2",
    "date": "2026-11-01",
    "fixed": [
