@@ -1,6 +1,13 @@
 {
  "releases": [
   {
+   "version": "v2026.11.07",
+   "date": "2026-11-07",
+   "new": [
+    "MSK144, the meteor-scatter mode, on 6 m (50.260 and 50.380 MHz): --msk144 (off unless asked for; the setup wizard's Decoders step, or MSK144 in Docker), to PSK Reporter, the Map and Analytics, with an MSK144 tab showing the last day's pings, when they came and the meteor showers active"
+   ]
+  },
+  {
    "version": "v2026.11.03-2",
    "date": "2026-11-03",
    "fixed": [
