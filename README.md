@@ -162,6 +162,9 @@ as a config file (passwords left out).
 | `FT8`, `FT4`, `FT2` | | bands to decode each mode on, e.g. `20,40` or `all`, or `true` for every band of `BANDS` with the mode's dial (default none), with WSJT-X's FT8 and FT4 decoders and WSJT-X improved's FT2, built in: senders to PSK Reporter (with `PSKREPORTER`) and FT8's and FT4's CQs to RBN; each mode's tab on the web page. Each band must be among `BANDS` |
 | `FT8_DEPTH`, `FT4_DEPTH`, `FT2_DEPTH` | `normal` (the compose file: `deep`) | the decoding depth: `fast`, `normal` or `deep` |
 | `FT8_THREADS`, `FT4_THREADS`, `FT2_THREADS` | every dial at once (the compose file: `4`) | the mode's decodes at once, every dial's together: a cycle waits its turn, dropped if not decoded within two cycles; the built-in decoders only |
+| `MSK144` | | `true` for 6 m when it is in `BANDS`, `6`, or `false` (default none): MSK144, meteor scatter, on 6 m's dials (50.260 and 50.380 MHz), WSJT-X's decoder built in; to PSK Reporter (with `PSKREPORTER`), never RBN; the web page's MSK144 tab. Needs a receiver that reaches 50 MHz |
+| `MSK144_DEPTH` | `deep` | `fast` (single pings only), `normal` or `deep` (also averages over frames) |
+| `MSK144_THREADS` | every dial at once | as `FT8_THREADS`, for MSK144 |
 | `FT8_JT9` | `false` | `true`: FT8 by the `jt9` program (`JT9`) instead of the built-in decoder |
 | `FT4_JT9` | `false` | `true`: FT4 by the `jt9` program (`JT9`) instead of the built-in decoder |
 | `FT2_JT9` | `false` | `true`: FT2 by the `jt9` program (`JT9`, WSJT-X improved's) instead of the built-in decoder |
@@ -990,12 +993,37 @@ decoder too (an extra a-priori pass, a slightly different front end), so
 its `jt9` finds a few decodes more or less and prints some 1 Hz, 0.1 s or
 1 dB apart.
 
+### MSK144, meteor scatter on 6 m
+
+`--msk144` (`MSK144` in Docker, or the setup wizard's Decoders step)
+decodes MSK144, WSJT-X's meteor-scatter mode, on 6 m's MSK144 dials:
+50.260 MHz (IARU Regions 2 and 3) and 50.380 MHz (Region 1), as WSJT-X 3.2
+lists them. It is off unless asked for, and needs a receiver that reaches
+50 MHz (as 6 m FT8 does: `--six-metres`). Each 15 s cycle is decoded by
+WSJT-X 3.2.0-rc1's MSK144 decoder, built in, as `jt9 -k -p 15 -f 1500 -F 200`
+decodes a 15 s file: single pings, and at `deep` (the default,
+`--msk144-depth`) the averages over 4, 5 and 7 frames. Pings are
+self-contained, so a 15 s cycle hears them whatever T/R period the stations
+use; a decode is shown at the end of its cycle. It costs little: about 0.26 s
+of one core a cycle on a Ryzen 9 3900X.
+
+```
+./ubersdr-skimmer --url http://receiver:8080 --bands 6 --six-metres whole --msk144 6 --pskreporter
+```
+
+Its decodes go to PSK Reporter (as `MSK144`, as WSJT-X sends them), the
+Map, Analytics, `/api/feed`, the all-modes telnet port and `--wsjtx-out`,
+never to RBN. Meteor scatter comes in pings minutes or hours apart, so its
+tab keeps the last day's decodes (over a restart too), how many came each
+quarter hour, and which meteor showers are active: pings come most around a
+shower's peak, and in the hours before dawn.
+
 ### wsprd on its own
 
 This decoder is also a program of its own, a drop-in for WSJT-X's `wsprd`
 (the same options, output and files, byte for byte, plus `-n`), for Linux
 and Windows: [ubersdr_wsprd](https://github.com/madpsy/ubersdr_wsprd), with
-its source. It has the built-in FST4W, FT8, FT4 and FT2 decoders as a `jt9`
+its source. It has the built-in FST4W, FT8, FT4, FT2 and MSK144 decoders as a `jt9`
 too, a drop-in for WSJT-X's `jt9` on WAV files. Both also read 32-bit float
 `.wav` files, with nothing rounded to 16 bits, and `jt9 --feed` (FT8, FT4
 and FT2) decodes a stream of files named on stdin with one decoder kept
@@ -1332,14 +1360,15 @@ spots:
                      after --telnet's and to PSK Reporter, never RBN
   --jtty BANDS       JTTY on these bands' dials only (40,20,15,10 or all;
                      default all)
-  --digital-dials T  the FT8, FT4, FT2 and JS8 dials, all of them, in place
+  --digital-dials T  the FT8, FT4, FT2, JS8 and MSK144 dials, all of them, in place
                      of the built-in ones: MODE:KHZ or MODE:KHZ:DEPTH,
                      comma-separated (FT8:14074:deep,FT8:14080:normal,
                      FT4:14080,JS8:7078); "defaults" the built-in table,
                      "none" no dials. A mode with no entries has no dials.
                      DEPTH (fast, normal, deep) is that dial's, else its
                      mode's (--ft8-depth); JS8 takes none. Which bands are
-                     decoded is still --ft8's, --ft4's, --ft2's and --js8's;
+                     decoded is still --ft8's, --ft4's, --ft2's, --msk144's
+                     and --js8's;
                      a dial no stream holds, or in no amateur band, is left
                      out, said, never a reason not to start. WSPR's dials
                      stay fixed
@@ -1377,6 +1406,16 @@ spots:
   --ft2-threads N    as --ft8-threads, for FT2
   --ft2-jt9          FT2 by the jt9 program (--jt9), as --ft8-jt9 for FT8;
                      it must be WSJT-X improved's (WSJT-X's own has no FT2)
+  --msk144 [BANDS]   decode MSK144, the meteor-scatter mode (15 s cycles), on
+                     these bands' MSK144 dials (6 m: 50.260 and 50.380 MHz;
+                     6 or all; default none; with no list, 6 m if skimmed),
+                     as --ft8 does FT8, with WSJT-X's MSK144 decoder built
+                     in (jt9 -k, 1500 Hz +-200), to PSK Reporter and an
+                     MSK144 tab; never to RBN. 6 m needs a receiver that
+                     reaches it (--six-metres)
+  --msk144-depth D   fast (single pings only), normal or deep (default deep:
+                     also averages over 4, 5 and 7 frames)
+  --msk144-threads N as --ft8-threads, for MSK144
   --js8 [BANDS]      decode JS8 (Normal, Fast, Turbo and Slow at once) on
                      these bands' JS8 dials (1.842, 3.578, 7.078, 10.130,
                      14.078 MHz and up; 20,40 or all; default none; with no

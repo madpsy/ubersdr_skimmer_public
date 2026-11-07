@@ -366,6 +366,17 @@ The same keys in each.
 | `threads` | int 1-64 | `--ft8-threads`, `--ft4-threads`, `--ft2-threads` | decodes at once (default half the cores, 2-4) |
 | `program` | bool | `--ft8-jt9`, `--ft4-jt9`, `--ft2-jt9` | decode with `programs.jt9`, not built in |
 
+### `ft.msk144`
+
+MSK144, the meteor-scatter mode, on 6 m (50.260 and 50.380 MHz): built in
+only, never to RBN.
+
+| Key | Type | Option | |
+|---|---|---|---|
+| `bands` | bands | `--msk144` | the bands decoded (`["6"]`); `"skimmed"` is the option with no list: 6 m if skimmed (default none) |
+| `depth` | enum `fast` `normal` `deep` | `--msk144-depth` | fast single pings only; deep also averages frames (default deep) |
+| `threads` | int 1-64 | `--msk144-threads` | decodes at once (default half the cores, 2-4) |
+
 ### `js8`
 
 | Key | Type | Option | |

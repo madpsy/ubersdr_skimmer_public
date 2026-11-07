@@ -59,6 +59,10 @@ services:
       FT8_DEPTH: "deep"
       FT4_DEPTH: "deep"
       FT2_DEPTH: "deep"
+      # MSK144, meteor scatter on 6 m (50.260 and 50.380 MHz): "true" for 6 m
+      # when it is skimmed, "6", or "false" off (needs a receiver that
+      # reaches 50 MHz)
+      MSK144: "false"
       # WSPR and FST4W on every band skimmed that has a WSPR dial ("true"),
       # every mode (WSPR, WSPR-15, FST4W-120 to -1800), deep; "false" off
       WSPR: "true"
