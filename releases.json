@@ -1,6 +1,13 @@
 {
  "releases": [
   {
+   "version": "v2026.11.08",
+   "date": "2026-11-08",
+   "changed": [
+    "RBN's node list shows the skimmer as UberSDR Skimmer and its release (for example UberSDR Skimmer v2026.11.08), not as Skimmer Server v.1.6.0.145"
+   ]
+  },
+  {
    "version": "v2026.11.07",
    "date": "2026-11-07",
    "new": [
