@@ -1,7 +1,7 @@
 {
  "releases": [
   {
-   "version": "v2026.11.12",
+   "version": "v2026.11.12-2",
    "date": "2026-11-12",
    "fixed": [
     "WSPR spots stopped reaching wsprnet.org while it was slow to answer: uploads timed out, the same spots went again and again, and a backlog grew without end; spots wsprnet takes but answers with an empty page are no longer given up on, and spots waiting over a day are now set aside"
