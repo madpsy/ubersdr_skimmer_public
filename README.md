@@ -165,7 +165,7 @@ as a config file (passwords left out).
 | `MSK144` | | `true` for 6 m when it is in `BANDS`, `6`, or `false` (default none): MSK144, meteor scatter, on 6 m's dials (50.260 and 50.380 MHz), WSJT-X's decoder built in; to PSK Reporter (with `PSKREPORTER`), never RBN; the web page's MSK144 tab. Needs a receiver that reaches 50 MHz |
 | `MSK144_DEPTH` | `deep` | `fast` (single pings only), `normal` or `deep` (also averages over frames) |
 | `MSK144_THREADS` | every dial at once | as `FT8_THREADS`, for MSK144 |
-| `FT8_NN` | `off` | experimental: `on` tries ft8-nn's neural soft demodulator (built in: nothing to install) on each FT8 candidate WSJT-X's own metrics fail and drops implausible OSD and a-priori decodes: about 9% more FT8 decodes (8.8% more confirmed by PSK Reporter, fewer unconfirmed) for about 1.5x FT8's CPU; or an `.onnx` model's path; built-in decoder only |
+| `FT8_NN` | `off` | `on` tries a neural soft demodulator (built in: nothing to install) on each FT8 candidate WSJT-X's own metrics fail and drops implausible OSD and a-priori decodes: about 9% more FT8 decodes for about 1.5x FT8's CPU; or an `.onnx` model's path; built-in decoder only |
 | `FT8_NN_LEVEL` | `1` | with `FT8_NN`: `2` tries harder on each candidate, about 1% more decodes for about 2x FT8's CPU |
 | `FT8_JT9` | `false` | `true`: FT8 by the `jt9` program (`JT9`) instead of the built-in decoder |
 | `FT4_JT9` | `false` | `true`: FT4 by the `jt9` program (`JT9`) instead of the built-in decoder |
@@ -1390,7 +1390,7 @@ spots:
                      default half the cores, at least 2, at most 4); a cycle
                      waits its turn, dropped if not decoded in two cycles.
                      Built in only
-  --ft8-nn MODEL     experimental: also try ft8nn's neural soft demodulator
+  --ft8-nn MODEL     also try a neural soft demodulator
                      on each FT8 candidate WSJT-X's own metrics fail, and
                      drop implausible OSD and a-priori decodes: about 9% more
                      decodes for about 1.5x the FT8 CPU. MODEL: on (the

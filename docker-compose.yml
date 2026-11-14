@@ -59,7 +59,7 @@ services:
       FT8_DEPTH: "deep"
       FT4_DEPTH: "deep"
       FT2_DEPTH: "deep"
-      # Experimental: FT8's neural soft demodulator (ft8-nn), tried on each FT8
+      # FT8's neural soft demodulator, tried on each FT8
       # candidate WSJT-X's own metrics fail: "on" about 9% more FT8 decodes for
       # about 1.5x FT8's CPU; FT8_NN_LEVEL "2" about 1% more for about 2x
       FT8_NN: "off"
