@@ -59,6 +59,11 @@ services:
       FT8_DEPTH: "deep"
       FT4_DEPTH: "deep"
       FT2_DEPTH: "deep"
+      # Experimental: FT8's neural soft demodulator (ft8-nn), tried on each FT8
+      # candidate WSJT-X's own metrics fail: "on" about 9% more FT8 decodes for
+      # about 1.5x FT8's CPU; FT8_NN_LEVEL "2" about 1% more for about 2x
+      FT8_NN: "off"
+      FT8_NN_LEVEL: "1"
       # MSK144, meteor scatter on 6 m (50.260 and 50.380 MHz): "true" for 6 m
       # when it is skimmed, "6", or "false" off (needs a receiver that
       # reaches 50 MHz)

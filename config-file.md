@@ -365,6 +365,8 @@ The same keys in each.
 | `depth` | enum `fast` `normal` `deep` | `--ft8-depth`, `--ft4-depth`, `--ft2-depth` | the dials without their own (`digital.dials`) (default normal) |
 | `threads` | int 1-64 | `--ft8-threads`, `--ft4-threads`, `--ft2-threads` | decodes at once (default half the cores, 2-4) |
 | `program` | bool | `--ft8-jt9`, `--ft4-jt9`, `--ft2-jt9` | decode with `programs.jt9`, not built in |
+| `nn` | string | `--ft8-nn` | FT8 only, experimental: `"on"` adds ft8-nn's neural soft demodulator (the built-in model), or an `.onnx` model's path; built in, nothing to install (default off) |
+| `nn_level` | int 1-2 | `--ft8-nn-level` | FT8 only, with `nn`: 2 tries harder, more decodes for more CPU (default 1) |
 
 ### `ft.msk144`
 
