@@ -1,6 +1,13 @@
 {
  "releases": [
   {
+   "version": "v2026.11.14",
+   "date": "2026-11-14",
+   "fixed": [
+    "RTTY spots showed no Evidence or Entity in the Spots tab"
+   ]
+  },
+  {
    "version": "v2026.11.12-2",
    "date": "2026-11-12",
    "fixed": [
