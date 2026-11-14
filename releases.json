@@ -1,10 +1,10 @@
 {
  "releases": [
   {
-   "version": "v2026.11.14-2",
+   "version": "v2026.11.14-3",
    "date": "2026-11-14",
    "new": [
-    "--ft8-nn on (off by default; FT8_NN in Docker, and the Decode step of the settings page): a neural network tries FT8 signals the usual decoding misses, for about 9% more FT8 decodes at about 1.5x the FT8 CPU; --ft8-nn-level 2 tries harder (about 10% for about 2x)"
+    "FT8 neural network, on by default (--ft8-nn off, FT8_NN \"off\" in Docker, or the Decode step of the settings page turns it off): it tries FT8 signals the usual decoding misses, for about 9% more FT8 decodes at about 1.7x the FT8 CPU; --ft8-nn-level 2 tries harder (about 10% for about 2.4x); a docker-compose.yml from before this release has FT8_NN \"off\", which keeps it off: set it to \"on\" or remove the line"
    ],
    "fixed": [
     "RTTY spots showed no Evidence or Entity in the Spots tab"
