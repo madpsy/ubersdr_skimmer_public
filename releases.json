@@ -1,8 +1,11 @@
 {
  "releases": [
   {
-   "version": "v2026.11.14",
+   "version": "v2026.11.14-2",
    "date": "2026-11-14",
+   "new": [
+    "--ft8-nn on (experimental, off by default; FT8_NN in Docker, and the Decode step of the settings page): a neural network tries FT8 signals the usual decoding misses, for about 9% more FT8 decodes at about 1.5x the FT8 CPU; --ft8-nn-level 2 tries harder (about 10% for about 2x)"
+   ],
    "fixed": [
     "RTTY spots showed no Evidence or Entity in the Spots tab"
    ]
