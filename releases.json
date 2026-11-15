@@ -1,6 +1,16 @@
 {
  "releases": [
   {
+   "version": "v2026.11.15",
+   "date": "2026-11-15",
+   "new": [
+    "an RTTY spot's details in the Spots tab say how its call was checked (MASTER.SCP, call shape) and how sure the reader was of it"
+   ],
+   "fixed": [
+    "an RTTY spot's details in the Spots tab showed no Decode"
+   ]
+  },
+  {
    "version": "v2026.11.14-3",
    "date": "2026-11-14",
    "new": [
