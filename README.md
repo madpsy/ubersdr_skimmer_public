@@ -1023,14 +1023,16 @@ shower's peak, and in the hours before dawn.
 ### wsprd on its own
 
 This decoder is also a program of its own, a drop-in for WSJT-X's `wsprd`
-(the same options, output and files, byte for byte, plus `-n`), for Linux
+(the same options, output and files, byte for byte, plus `-n` and `-F`), for Linux
 and Windows: [ubersdr_wsprd](https://github.com/madpsy/ubersdr_wsprd), with
 its source. It has the built-in FST4W, FT8, FT4, FT2 and MSK144 decoders as a `jt9`
 too, a drop-in for WSJT-X's `jt9` on WAV files. Both also read 32-bit float
 `.wav` files, with nothing rounded to 16 bits, and `jt9 --feed` (FT8, FT4
 and FT2) decodes a stream of files named on stdin with one decoder kept
 running; `jt9 --fast-subtract` gives up WSJT-X's output to the bit, but not
-its decodes, for less CPU. The skimmer does not need either.
+its decodes, for less CPU. `wsprd -F` and `jt9 --fine-freq` (FST4W) measure
+each decode's frequency to 0.001 Hz, for Doppler work with GPS-locked
+stations. The skimmer does not need either.
 
 ### FT8, FT4, FT2 and WSPR
 
