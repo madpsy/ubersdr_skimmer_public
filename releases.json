@@ -1,6 +1,13 @@
 {
  "releases": [
   {
+   "version": "v2026.11.17",
+   "date": "2026-11-17",
+   "fixed": [
+    "--no-de and --no-heard were ignored for RTTY spots, which still went out on the RTTY and all-modes telnet ports and the page"
+   ]
+  },
+  {
    "version": "v2026.11.16-3",
    "date": "2026-11-16",
    "changed": [
