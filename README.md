@@ -129,7 +129,7 @@ as a config file (passwords left out).
 |---|---|---|
 | `UBERSDR_URL` | `http://ubersdr:8080` | the receiver |
 | `UBERSDR_PASSWORD` | | the receiver's password, if it has one |
-| `BANDS` | `all` | `all` is what CW Skimmer Server skims (160–6 m, 60 m, the beacon frequencies), less what the receiver cannot tune; or a list such as `40,30,20`. `2200` and `630` (2200 m, 630 m) are never in `all` and never skimmed, CW or RTTY: named (`all,2200,630`), each gets a stream for its WSPR and FST4W and the RF tab |
+| `BANDS` | `all` | `all` is what CW Skimmer Server skims (160–6 m, 60 m, the beacon frequencies), less what the receiver cannot tune; or a list such as `40,30,20`. `2200` and `630` (2200 m, 630 m) are never in `all` and never skimmed, CW or RTTY: named (`all,2200,630`), each gets a stream for its WSPR and FST4W and the RF tab. 10 m and 6 m have two segments each, `cw` and `beacons` (28.000–28.070 and 28.100–28.310; 50.000–50.100 and 50.400–50.500): a band alone or in `all` is both, one named that one alone, e.g. `all,10:cw` (every band, 10 m's CW segment only: a stream fewer at `iq192`). The web page's Config tab ticks them too |
 | `IQ_MODE` | `iq192` | `iq48`, `iq96`, `iq192` or `iq384`: the width of each stream |
 | `MIN_MARGIN` | `15` | reduced-depth IQ, dB under the noise floor; `0` asks for lossless |
 | `CALLSIGN` | the receiver's | spots go out as `CALLSIGN-#` (default: `cw_skimmer_callsign`, else the receiver's callsign) |
