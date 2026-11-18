@@ -1,7 +1,7 @@
 {
  "releases": [
   {
-   "version": "v2026.11.18",
+   "version": "v2026.11.18-2",
    "date": "2026-11-18",
    "new": [
     "10 m and 6 m segments can be chosen on their own: the settings page ticks CW and Beacons for each, and --bands or BANDS takes 10:cw, 10:beacons, 6:cw, 6:beacons (all,10:cw skims 10 m's CW segment alone, a stream fewer at iq192); existing settings skim as before"
