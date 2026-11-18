@@ -186,7 +186,7 @@ words listed), **path** (a string, rule 8).
 | `margin_db` | int | `--margin` | reduced-depth IQ, 10-60 dB under the noise; 0 lossless (default 15) |
 | `insecure` | bool | `--insecure` | do not check its TLS certificate |
 | `gap_fill` | bool | `--no-gap-fill` when `false` | silence where its packets went missing (default true) |
-| `bands` | bands | `--bands` | the bands skimmed, `"all"` or a list |
+| `bands` | bands | `--bands` | the bands skimmed, `"all"` or a list; `"10:cw"`, `"10:beacons"`, `"6:cw"`, `"6:beacons"` one segment of 10 or 6 m alone (`["all", "10:cw"]`: every band, 10 m's CW segment only) |
 | `freq_hz` | number | `--freq` | one stream at this centre instead of `bands` |
 | `six_metres` | enum `cw` `whole` `off` | `--six-metres` | 6 m in `bands` (default whole) |
 | `freq_calibration` | number or string | `--freq-calibration` | how far the radio reads high, every frequency divided by it (as Skimmer Server's `FreqCalibration`): `1.000000468` or `"+0.5ppm"` |
@@ -213,7 +213,7 @@ Every radio, of any kind:
 | Key | Type | Option | |
 |---|---|---|---|
 | `kind` | enum `hpsdr` `ka9q` `driver` | `--hpsdr`, `--ka9q`, `--driver` | which kind of radio (required) |
-| `bands` | bands | `--bands` after the radio | its bands (no band on two radios) |
+| `bands` | bands | `--bands` after the radio | its bands (no band on two radios); `"10:cw"` and the like one segment alone, as the receiver's |
 | `freq_hz` | number | `--freq` after the radio | one receiver at this centre instead |
 | `mode` | enum `iq48` `iq96` `iq192` `iq384` | `--mode` after the radio | its receivers' width (a driver: no iq384) |
 | `freq_calibration` | number or string | `--freq-calibration` after the radio | its own calibration |

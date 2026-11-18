@@ -13,6 +13,8 @@ services:
       # Bands to skim: "all" is what CW Skimmer Server skims (160-6 m, 60 m,
       # the beacon frequencies), less what the receiver cannot tune; one IQ
       # stream each, so mind the receiver's session limit. Or e.g. "40,30,20".
+      # 10 and 6 m are two segments each, cw and beacons: "all,10:cw" skims
+      # 10 m's CW segment alone (a stream fewer at iq192).
       BANDS: "all"
       # Report spots to the Reverse Beacon Network (as RBN Aggregator does),
       # as CALLSIGN-# with the receiver's call, name, QTH and locator by

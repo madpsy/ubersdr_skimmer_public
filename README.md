@@ -1139,7 +1139,14 @@ input:
                      skims the half nearer its centre. 2200 and 630 (2200 m,
                      630 m) are never in all and never skimmed, CW or RTTY:
                      named, a stream each covers the whole band, for its
-                     WSPR and FST4W (--wspr) and the RF tab
+                     WSPR and FST4W (--wspr) and the RF tab. 10 m and 6 m
+                     have two segments each, cw (28.000-28.070,
+                     50.000-50.100) and beacons (28.100-28.310,
+                     50.400-50.500); a band alone or in all is both, a
+                     segment named that one alone, whatever else names
+                     the band: all,10:cw is every band, 10 m's CW segment
+                     only (one stream fewer at iq192). A stream skims all
+                     it covers, a segment not named included
   --centre-streams   centre each band's streams on what they skim. By default
                      an UberSDR's and radiod's start 2 kHz below the band,
                      the rest of their width above it, for RTTY and the
@@ -1282,8 +1289,11 @@ spots:
                      radio, every radio's. SM7IUN's skew is the call's, every
                      radio together: give it to those that share the error
   --six-metres M     6 m in --bands: cw (50.000-50.100 alone, one stream
-                     at iq192 or iq384), whole (50.400-50.500 too, as Skimmer
-                     Server: two streams at iq192 or iq384) or off. By default whole,
+                     at iq192 or iq384, as 6:cw in --bands), whole
+                     (50.400-50.500 too, as Skimmer Server: two streams at
+                     iq192 or iq384) or off. 6:cw or 6:beacons in --bands
+                     choose over cw and whole; off leaves 6 m out still.
+                     By default whole,
                      where the receiver tunes it (an HPSDR radio as its
                      board says, never a --driver's); cw or whole takes it on
                      a --driver too. After an --hpsdr, --ka9q or --driver:
