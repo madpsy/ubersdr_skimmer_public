@@ -1,6 +1,19 @@
 {
  "releases": [
   {
+   "version": "v2026.11.18",
+   "date": "2026-11-18",
+   "new": [
+    "10 m and 6 m segments can be chosen on their own: the settings page ticks CW and Beacons for each, and --bands or BANDS takes 10:cw, 10:beacons, 6:cw, 6:beacons (all,10:cw skims 10 m's CW segment alone, a stream fewer at iq192); existing settings skim as before"
+   ],
+   "fixed": [
+    "2200 and 630 m could not be chosen for an HPSDR, ka9q-radio or Skimmer Server radio in the settings, nor added to \"Every band\" on an UberSDR; both now offer them, for WSPR and FST4W",
+    "2200 m or 630 m given to two radios was not refused, and both decoded it; and a decoder could be set to the skimmed bands when none of them has its dials",
+    "a radio set to every band showed no bands in the settings, and choosing one there or adding a decoder's band replaced every band with that one; each radio now has its own Every band box",
+    "with two radios, one still needing bands marked both as needing them"
+   ]
+  },
+  {
    "version": "v2026.11.17",
    "date": "2026-11-17",
    "fixed": [
