@@ -21,6 +21,10 @@ services:
       # default; "false" turns it off
       RBN: "true"
       # RBN_MODES: "cw,rtty,ft8,ft4"  # the modes whose spots go to RBN (default all); e.g. "cw" alone
+      # Watch this skimmer's accuracy on RBN (the web page's RBN Watch tab):
+      # RBN's CW feed read, logged in as the callsign, for every skimmer's
+      # spots, and our busted calls and bust rate beside RBN's; "true" turns it on
+      RBN_WATCH: "false"
       # Width of each IQ stream: iq48, iq96, iq192 or iq384; wider, fewer
       # streams (sessions) for the same bands
       IQ_MODE: "iq192"

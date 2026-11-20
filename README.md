@@ -139,6 +139,7 @@ as a config file (passwords left out).
 | `RBN_DRY_RUN` | `false` | sign on to RBN and judge spots, but upload none |
 | `RBN_CALL` | `CALLSIGN` | the call RBN knows the skimmer by, its spots as `RBN_CALL-#` |
 | `RBN_MODES` | all | with `RBN`, the modes whose spots go to RBN, of `cw`, `rtty`, `ft8` and `ft4`, a comma between: `cw` sends CW alone, `rtty,ft8` no CW. The others are still skimmed and spotted everywhere else (telnet, PSK Reporter, the web page); with RTTY not sent, no RTTY skimmer signs on to RBN. The RBN tab shows which go, and counts those held back |
+| `RBN_WATCH` | `false` | `true`: watch this skimmer's accuracy on RBN, on the web page's RBN Watch tab. It reads RBN's CW feed (logged in as `RBN_CALL`), which carries every skimmer's spots, and counts a spotted call as busted when few skimmers heard it there and then while a call a spelling away was heard by many, as RBN's bust lists do. It shows our busted calls (each with the call it should have been) and our bust rate over 15 minutes, an hour and 24 hours, beside RBN's as a whole, its median node and each skimmer software's (from RBN's node list). Each spot's verdict is final half an hour after it. Kept over a restart |
 | `RBN_BAD_CALLS` | `false` | `true`: send RBN no spot of a call in `./cache/BadCalls.txt` (as RBN Aggregator's "Not in BadCalls.txt"; the form under [The bad calls file](#the-bad-calls-file)), read again when edited; or a file's path in the container. The RBN tab's "Bad calls (manual)" shows the calls it held |
 | `WEB_PORT` | `6101` | the web page |
 | `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format, RTTY's spots on the next port (7301) in RTTY Skimmer Server's, JTTY's on 7302, every mode's on 7303; `0` turns them all off |
@@ -214,7 +215,8 @@ bytes each), and in full when the program stops. A disk that is full,
 read-only or slow costs the saved spots and nothing else, and a file that is
 broken is read as far as it is whole, else started afresh. Beside it, each
 saved whole: the Analytics tab's WSPR noise (`spots-wspr-noise.bin`) and
-decoders over time (`spots-decoders.bin`) every 5 minutes, and the RF tab's
+decoders over time (`spots-decoders.bin`) and, with `RBN_WATCH`, the RBN
+Watch tab's figures (`spots-rbn-watch.bin`, compressed) every 5 minutes, and the RF tab's
 day (`spots-rf.bin`, some 350 kB a stream) every 30 minutes, all when the
 program stops; a stream's RF record is put back only if the stream covers
 the same frequencies. In Docker they are in `/data/config`, the compose
@@ -1591,17 +1593,6 @@ spots:
                      is fetched and learned afresh
 
 output:
-  --compare          live: hold each spot on stdout until RBN has had time to
-                     hear the station (up to 3 minutes), then print it with
-                     what RBN made of it: "RBN:match" (heard on exactly our
-                     frequency, at about our speed), "freq" (heard nearby,
-                     not on our frequency), "wpm" (another speed),
-                     "elsewhere" (heard, but not within 3 kHz), or "none";
-                     their commonest frequency, median speed and how many
-                     skimmers; and "other:CALL" when RBN heard another call
-                     on our frequency, read from RBN's telnet node
-                     (telnet.reversebeacon.net:7000). Telnet spots are not
-                     held or changed
   --name NAME        the operator, as the telnet sign-on and RBN show it
                      (default: the receiver's callsign)
   --qth TEXT         the location (default: the receiver's)
@@ -1627,6 +1618,16 @@ output:
                      named below are: checked line by line, read again when
                      it changes; one not there yet holds none until it is.
                      Without it, one uploaded on the web page is used
+  --rbn-watch        watch this skimmer's accuracy on RBN, live: RBN's CW
+                     feed (telnet.reversebeacon.net:7000, logged in as the
+                     RBN call) read for every skimmer's spots, and each of
+                     ours whose call was busted (heard by few skimmers, a
+                     spelling away from a call many heard there and then,
+                     as RBN's bust lists count them) shown on the web
+                     page's RBN Watch tab, with our bust rate over 15
+                     minutes, an hour and 24 hours beside RBN's and each
+                     skimmer software's (RBN's node list, fetched daily).
+                     Kept over a restart. Live only; off by default
   --wsjtx PORT[:CAL] with --rbn, also spot FT8/FT4 CQs from WSJT-X on this UDP
                      port (calibration factor CAL, default 1); repeatable
   --agg-telnet PORT  with --rbn, the reporter's local-user telnet port (as

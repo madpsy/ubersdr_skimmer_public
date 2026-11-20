@@ -135,7 +135,7 @@ the command line.
   "telnet":         { ... },
   "web":            { ... },
   "admin":          { ... },   // the web page's admin: its password, who may
-  "output":         { ... },   // stdout: JSON, tracks, --compare
+  "output":         { ... },   // stdout: JSON, tracks
   "data":           { ... }    // cty.dat, MASTER.SCP and the other lists
 }
 ```
@@ -440,6 +440,7 @@ names (`W2`, `W15`, `F2`, `F5`, `F15`, `F30`) are taken too. Band names are
 | `bad_calls` | bool or path | `--rbn-bad-calls [FILE]` | `true`: BadCalls.txt; a path: that file. Checked line by line and read again when it changes, as `data`'s files; one not there yet holds no calls until it is |
 | `wsjtx` | array of `{ "port": int, "calibration": number }` | `--wsjtx PORT[:CAL]`, repeated | WSJT-X UDP sources of FT8/FT4 CQs |
 | `local_telnet_port` | int | `--agg-telnet` | the reporter's local-user telnet, as Aggregator's 7550 |
+| `watch` | bool | `--rbn-watch` | this skimmer's accuracy on RBN, on the web page's RBN Watch tab: RBN's CW feed read (logged in as `call`, else `station.call`) and our busted calls and bust rate set beside RBN's (default false) |
 
 ### `reporting.pskreporter`
 
@@ -507,7 +508,10 @@ What goes to stdout.
 |---|---|---|---|
 | `json` | bool | `--json` | spots as JSON lines |
 | `tracks` | bool | `--tracks` | every station's text as it changes, instead of spots |
-| `compare` | bool | `--compare` | hold each spot until RBN has had time to hear it, then print what RBN made of it (from telnet.reversebeacon.net:7000) |
+
+`output.compare` (`--compare`) was taken out on 2026-11-20: a file that has it
+still starts, with the key left out and a line in the log saying so. The RBN
+Watch tab (`reporting.rbn.watch`) does more.
 
 ### `data`
 
