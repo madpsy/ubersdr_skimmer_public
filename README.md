@@ -1322,6 +1322,13 @@ spots:
                      it when it changes: CQ if a CQ is tied to it, DE if a DE
                      is, else blank; a call once in 10 minutes within 500 Hz
                      unless it turns CQ
+  --cw-nn on|off     the CW neural network, on by default: each track's audio
+                     read again by a small network built into the program,
+                     its text one more reading of the track beside the
+                     decoder's own two, so a call is spotted from whichever
+                     reads it best (weak and fading signals, hand keying).
+                     About a thousandth of a core for each signal read. With
+                     --cw-engine text; off: the decoder's own readings only
   --skim-digital     skim the digital modes' windows too (FT8, FT4, FT2, WSPR
                      and JS8: each dial frequency and 3 kHz above it), which
                      are left out by default: a CW decoder reads only busts

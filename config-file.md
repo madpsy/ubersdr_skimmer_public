@@ -296,6 +296,7 @@ otherwise (the command line's "before any radio").
 |---|---|---|---|
 | `enabled` | bool | `--no-cw` when `false` | skim CW (default true) |
 | `engine` | enum `bayesian` `text` | `--cw-engine` | how each signal's call is read (default text) |
+| `nn` | bool | `--cw-nn` `on`/`off` | the CW neural network: each track read again by a network built in (default true) |
 | `all_bands` | bool | `--all-bands` | skim the whole window, CW sub-band or not |
 | `skim_digital` | bool | `--skim-digital` | skim the digital modes' windows too |
 | `max_tracks` | int 128-2048 | `--max-tracks` | stations each stream reads at once |
