@@ -60,7 +60,15 @@ hears it (CW, USB, LSB, AM, synchronous AM, FM). Dragging the band moves it
 under the dial without a break in the audio; the squelch, the meter and the
 fixed gain go by the passband's noise, so they read alike on any receiver.
 `RADIO: "false"` turns it off, `RADIO_PASSWORD` keeps tuning to those who know
-it. The Resources tab's Sources section says what the receiver reports of
+it.
+
+**Live CW decoding**: listening to a station in CW, on a band's spectrum or
+on the Radio tab, shows what it sends as text beneath, decoded live in your
+browser by a neural network the page carries (about 15 MB, fetched once).
+Calls stand out and open the Lookup tab, common abbreviations show their
+meaning on hover, letters the network was unsure of are faint, and the
+station's speed and note are shown, with a button to tune onto it when it is
+a little off. Copy takes the text, a line for each frequency. The Resources tab's Sources section says what the receiver reports of
 itself, and each stream's session. Its Clock section shows the host's clock against
 NTP (checked every 64 s); more than half a second off, every tab says so at
 the top.
@@ -139,7 +147,7 @@ as a config file (passwords left out).
 | `RBN_DRY_RUN` | `false` | sign on to RBN and judge spots, but upload none |
 | `RBN_CALL` | `CALLSIGN` | the call RBN knows the skimmer by, its spots as `RBN_CALL-#` |
 | `RBN_MODES` | all | with `RBN`, the modes whose spots go to RBN, of `cw`, `rtty`, `ft8` and `ft4`, a comma between: `cw` sends CW alone, `rtty,ft8` no CW. The others are still skimmed and spotted everywhere else (telnet, PSK Reporter, the web page); with RTTY not sent, no RTTY skimmer signs on to RBN. The RBN tab shows which go, and counts those held back |
-| `RBN_WATCH` | `false` | `true`: watch this skimmer's accuracy on RBN, on the web page's RBN Watch tab. It reads RBN's CW feed (logged in as `RBN_CALL`), which carries every skimmer's spots, and counts a spotted call as busted when few skimmers heard it there and then while a call a spelling away was heard by many, as RBN's bust lists do. It shows our busted calls (each with the call it should have been) and our bust rate over 15 minutes, an hour and 24 hours, beside RBN's as a whole, its median node and each skimmer software's (from RBN's node list). Each spot's verdict is final half an hour after it. Kept over a restart. The tab's Whole days part compares every node over up to 7 whole days of RBN's history, the days fetched from RBN by the skimmer (one comparison each 30 seconds; the last 7 days used kept in `./cache`) |
+| `RBN_WATCH` | `false` | `true`: watch this skimmer's accuracy on RBN, on the web page's RBN Watch tab. It reads RBN's CW feed (logged in as `RBN_CALL`), which carries every skimmer's spots, and counts a spotted call as busted when few skimmers heard it there and then while a call a spelling away was heard by many, as RBN's bust lists do. It shows our busted calls (each with the call it should have been, the spot's SNR, and our speed beside the other skimmers' for the real call) and our bust rate over 15 minutes, an hour and 24 hours, beside RBN's as a whole, its median node and each skimmer software's (from RBN's node list). Each spot's verdict is final half an hour after it. Kept over a restart. The tab's Whole days part compares every node over up to 7 whole days of RBN's history, the days fetched from RBN by the skimmer (one comparison each 30 seconds; the last 7 days used kept in `./cache`): bust rates, coverage, and how closely each software's speed (WPM) readings match the other nodes' on the same signals |
 | `RBN_BAD_CALLS` | `false` | `true`: send RBN no spot of a call in `./cache/BadCalls.txt` (as RBN Aggregator's "Not in BadCalls.txt"; the form under [The bad calls file](#the-bad-calls-file)), read again when edited; or a file's path in the container. The RBN tab's "Bad calls (manual)" shows the calls it held |
 | `WEB_PORT` | `6101` | the web page |
 | `TELNET_PORT` | `7300` | DX-cluster telnet, in CW Skimmer Server's format, RTTY's spots on the next port (7301) in RTTY Skimmer Server's, JTTY's on 7302, every mode's on 7303; `0` turns them all off |
@@ -153,6 +161,7 @@ as a config file (passwords left out).
 | `QRZ_VALIDATE` | `false` | `true`, with QRZ lookups (UberSDR's, or `QRZ_USER` and `QRZ_PASSWORD`): spot only calls QRZ knows. A call QRZ does not know is not spotted (and asked again after a day); a spot waits up to 10 s for QRZ's answer. When QRZ cannot answer (down, an error, too slow) the spot goes out as without it, and the call is asked again at its next spot. Beacons are not checked |
 | `AUTO_CALIBRATE` | `false` | `true`: with `RBN`, calibrate the frequency by SM7IUN's skew as each day's list comes in ([Frequency calibration for each radio](#frequency-calibration-for-each-radio): its rules) |
 | `FREQ_CALIBRATION` | `1` | how far the radio reads high: every frequency is divided by it, as by CW Skimmer Server's `FreqCalibration`: a factor (`1.000000468`) or ppm (`+0.5ppm`). [SM7IUN](https://sm7iun.se/rbn/analytics/) measures each RBN skimmer's error daily; the web page's RBN tab shows this skimmer's and the factor to set. A change shows fully in SM7IUN's list from the second day after it. With radios in `EXTRA_ARGS`, this is the default; a `--freq-calibration` after a radio there is that radio's ([Frequency calibration for each radio](#frequency-calibration-for-each-radio)) |
+| `CW_NN` | `on` | the CW neural network: each CW signal is read again by a small network built into the program, beside the decoder, so weak, fading and hand-keyed stations are spotted more often, for about a thousandth of a core a signal. `off` reads with the decoder alone |
 | `NOISE_FILTER` | `true` | keep tracks off SSB, data, noise and swept carriers in the CW segments (shown tinted on the web page); `false` tracks them as any signal |
 | `GAP_FILL` | `true` | silence where the UberSDR's packets went missing (found by their timestamps), so WSPR and FT keep time; `false` passes the stream as it comes |
 | `RTTY_FILTER` | `true` | find RTTY (two-tone FSK at the usual shifts) anywhere in the band but the digital modes' windows and keep tracks off it and its sidebands, which CW decoders otherwise read callsigns out of (shown tinted on the web page, with its shift). `false` tracks it as any signal, and decodes no RTTY |
