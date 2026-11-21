@@ -1,7 +1,7 @@
 {
  "releases": [
   {
-   "version": "v2026.11.21",
+   "version": "v2026.11.21-2",
    "date": "2026-11-21",
    "new": [
     "the CW neural network: each CW signal is read again by a small network built into the program, beside the decoder, so weak, fading and hand-keyed stations are spotted more often; on by default, --cw-nn off (CW_NN, the settings page) turns it off",
@@ -12,7 +12,8 @@
     "--compare is taken out (the RBN Watch tab does more); a config file that has it still starts"
    ],
    "fixed": [
-    "a station signing portable (G4ABC/P, DL/G4ABC, W1AW/7) was often spotted under its home call, as if it were another station; one that paused round the slash (most often with a prefix: 9H/DM6EE, M/W4MQC) was spotted only under its home call"
+    "a station signing portable (G4ABC/P, DL/G4ABC, W1AW/7) was often spotted under its home call, as if it were another station; one that paused round the slash (most often with a prefix: 9H/DM6EE, M/W4MQC) was spotted only under its home call",
+    "on Windows, the CW neural network (and --ft8-nn) did not start on a PC without Microsoft's Visual C++ runtime installed (\"cannot load ONNX Runtime\"), and CW was read without it"
    ]
   },
   {
