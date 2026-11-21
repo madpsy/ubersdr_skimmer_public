@@ -1,6 +1,21 @@
 {
  "releases": [
   {
+   "version": "v2026.11.21",
+   "date": "2026-11-21",
+   "new": [
+    "the CW neural network: each CW signal is read again by a small network built into the program, beside the decoder, so weak, fading and hand-keyed stations are spotted more often; on by default, --cw-nn off (CW_NN, the settings page) turns it off",
+    "live CW decoding in each band tab and the Radio tab: listening to a station in CW shows what it sends as text beneath, decoded live in your browser by a neural network; calls stand out and open the Lookup tab, common abbreviations show their meaning on hover, uncertain letters are faint, and the station's speed and note are shown, with a button to tune onto it",
+    "the RBN Watch tab, off by default: turn it on with \"Watch this skimmer's accuracy on RBN\" in the settings page, RBN_WATCH: \"true\" in docker-compose, --rbn-watch on the command line, or reporting.rbn.watch in the config file; it watches your RBN callsign. Live: this skimmer's busted calls on RBN (each with the call it should have been, its SNR, its speed beside the other skimmers', and how it went wrong) and its bust rate over 15 minutes, an hour and 24 hours, beside RBN's as a whole, its median node and each skimmer software's, by band and through the day; kept over a restart. Whole days: every RBN node compared over up to 7 days of RBN's history, fetched by the skimmer: bust rates, coverage, and how accurate each software's speed (WPM) readings are, by software, version and node"
+   ],
+   "changed": [
+    "--compare is taken out (the RBN Watch tab does more); a config file that has it still starts"
+   ],
+   "fixed": [
+    "a station signing portable (G4ABC/P, DL/G4ABC, W1AW/7) was often spotted under its home call, as if it were another station; one that paused round the slash (most often with a prefix: 9H/DM6EE, M/W4MQC) was spotted only under its home call"
+   ]
+  },
+  {
    "version": "v2026.11.18-2",
    "date": "2026-11-18",
    "new": [
