@@ -1,6 +1,18 @@
 {
  "releases": [
   {
+   "version": "v2026.11.22",
+   "date": "2026-11-22",
+   "new": [
+    "MQTT through UberSDR: as UberSDR's addon, the skimmer publishes its health and, with RBN Watch on, its live bust figures on the receiver's own MQTT connection, and they appear in Home Assistant when UberSDR has discovery on; nothing to set, on by default in Docker (MQTT_UBERSDR: \"false\" turns it off), and no spots, which UberSDR already publishes itself",
+    "MQTT to your own broker: every spot of every mode, the health and RBN Watch's live bust figures, with Home Assistant discovery if you like; set MQTT (mqtt://host or mqtts://host) in docker-compose, --mqtt on the command line, or the Broker field in the settings page's Reporting step; the Resources tab shows the connection",
+    "spots are now also sent to https://cluster.ubersdr.org/ as they are heard; to turn this off, set SPOT_STREAM: \"false\" in docker-compose (--no-spot-stream on the command line)"
+   ],
+   "fixed": [
+    "a skimmer with FT8, FT4, FT2, JS8 or WSPR set to \"all\" (or naming 6 m) would not start on a receiver that cannot tune 6 m, such as an UberSDR set to 0-30 MHz, and in Docker restarted over and over"
+   ]
+  },
+  {
    "version": "v2026.11.21-2",
    "date": "2026-11-21",
    "new": [
