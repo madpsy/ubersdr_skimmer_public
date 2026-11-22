@@ -25,6 +25,11 @@ services:
       # RBN's CW feed read, logged in as the callsign, for every skimmer's
       # spots, and our busted calls and bust rate beside RBN's; "true" turns it on
       RBN_WATCH: "false"
+      # Publish this skimmer's health and RBN Watch's live bust figures to MQTT
+      # (and Home Assistant) through UberSDR's own MQTT connection: nothing to
+      # set here or there, and dormant while the receiver's MQTT is off. Never
+      # spots: UberSDR publishes the skimmer's spots itself. "false" turns it off
+      MQTT_UBERSDR: "true"
       # Width of each IQ stream: iq48, iq96, iq192 or iq384; wider, fewer
       # streams (sessions) for the same bands
       IQ_MODE: "iq192"
@@ -105,10 +110,17 @@ services:
       # AUTO_CALIBRATE: "false" # "true": with RBN, calibrate by SM7IUN's daily skew as each list comes in
       # RTTY_TENS_HZ: "false" # "true": RTTY spots' frequencies to 10 Hz (14083.45), as RTTY Skimmer Server's TensHz
       # PSKREPORTER_ANTENNA: ""  # the antenna, as PSK Reporter shows it
+      # SPOT_STREAM: "false"  # send no spot stream (every validated spot, as heard, to cluster.ubersdr.org: on by default)
       # STATIC_FILTER: "full"  # static crashes: "full" start and keep no track, "starts" start none, "off" track as any signal
       # WSJTX_OUT: ""         # HOST:PORT, e.g. "192.168.1.20:2237": FT8/FT4/FT2, WSPR and FST4W decodes sent there
       #                       #   as WSJT-X sends its own over UDP (GridTracker, JTAlert...); give the PC's own address
       # WSJTX_OUT_ID: ""      # the instance's Id there (default "UberSDR Skimmer")
+      # MQTT: ""              # mqtt://HOST[:PORT] or mqtts://HOST[:PORT]: every spot and the figures straight to your own broker as well
+      # MQTT_USER: ""
+      # MQTT_PASSWORD: ""
+      # MQTT_TOPIC: ""        # the topics' prefix (default ubersdr-skimmer/CALLSIGN)
+      # MQTT_HA: "false"      # "true" (or a prefix): Home Assistant discovery on that broker
+      # MQTT_INSECURE: "false"  # "true": the broker's TLS certificate not checked
       # QRZ_USER: ""          # QRZ.com login (XML Data subscription), only if UberSDR's own lookups
       # QRZ_PASSWORD: ""      #   are off: calls are looked up through UberSDR's lookup_services
       # QRZ_VALIDATE: "false"  # "true": spot only calls QRZ knows (spots still go when QRZ cannot answer)

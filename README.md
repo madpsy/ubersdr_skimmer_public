@@ -157,6 +157,12 @@ as a config file (passwords left out).
 | `PSKREPORTER_ANTENNA` | | the antenna, as PSK Reporter shows it |
 | `WSJTX_OUT` | | `HOST:PORT`, e.g. `192.168.1.20:2237`: the FT8, FT4, FT2, WSPR and FST4W decodes sent there as WSJT-X sends its own over UDP, for GridTracker, JTAlert and the like (see [Decodes to WSJT-X programs](#decodes-to-wsjt-x-programs)). Give the address of the PC the program runs on. Unset: off |
 | `WSJTX_OUT_ID` | `UberSDR Skimmer` | the instance's Id, as those programs show it |
+| `MQTT_UBERSDR` | `true` | publish the skimmer's health and, with `RBN_WATCH`, RBN Watch's live bust figures to MQTT through UberSDR's own MQTT connection (its addon ingest port, port 6926 on the sdr-network): nothing to set here or in UberSDR, and with Home Assistant discovery on in UberSDR they appear there as entities of an "UberSDR CALL Skimmer" device. Never spots: UberSDR publishes the skimmer's spots itself (from [the feed](#the-feed-every-spot-and-the-skimmers-health-for-your-own-program)). Dormant while the receiver's MQTT is off. `false` turns it off; a URL names the port elsewhere. Unset is `true`, so an install from before this setting has it too. See [MQTT](#mqtt) |
+| `MQTT` | | `mqtt://HOST[:PORT]` or `mqtts://HOST[:PORT]` (TLS): also publish straight to your own broker, every spot of every mode as well as the figures ([MQTT](#mqtt)). Unset: off |
+| `MQTT_USER`, `MQTT_PASSWORD` | | that broker's login |
+| `MQTT_TOPIC` | `ubersdr-skimmer/CALLSIGN` | the topics' prefix there |
+| `MQTT_HA` | `false` | `true` (or a discovery prefix, default `homeassistant`): Home Assistant MQTT discovery on that broker |
+| `MQTT_INSECURE` | `false` | `true`: the broker's TLS certificate is not checked (one of its own making) |
 | `QRZ_USER`, `QRZ_PASSWORD` | | a [QRZ.com](https://www.qrz.com) login with an XML Data subscription: each call spotted is looked up (10,000 kept, the least recently spotted forgotten first), placing it on the web page's Map tab and giving its grid square to PSK Reporter. Checked at startup: if QRZ refuses it, the log and the Map tab say so and the skimmer runs on without. Not needed as an addon: the calls are asked of UberSDR's own lookups (its `lookup_services`, with `skimmer` among its `trusted_containers`), these used only if UberSDR serves none. Commented out in the compose file: uncomment and set them |
 | `QRZ_VALIDATE` | `false` | `true`, with QRZ lookups (UberSDR's, or `QRZ_USER` and `QRZ_PASSWORD`): spot only calls QRZ knows. A call QRZ does not know is not spotted (and asked again after a day); a spot waits up to 10 s for QRZ's answer. When QRZ cannot answer (down, an error, too slow) the spot goes out as without it, and the call is asked again at its next spot. Beacons are not checked |
 | `AUTO_CALIBRATE` | `false` | `true`: with `RBN`, calibrate the frequency by SM7IUN's skew as each day's list comes in ([Frequency calibration for each radio](#frequency-calibration-for-each-radio): its rules) |
@@ -542,6 +548,70 @@ that should say so; it is not for a container's health check.
 
 The image's `HEALTHCHECK` asks for `/api/health` every 30 seconds. Docker
 only marks a container unhealthy; it does not restart it.
+
+## MQTT
+
+Two ways, either or both.
+
+**Through UberSDR** (`MQTT_UBERSDR`, on by default in Docker; `--mqtt-ubersdr`):
+the skimmer, as UberSDR's addon, publishes through the receiver's own MQTT
+connection, under `ubersdr/metrics/addons/skimmer/`:
+
+| Topic | Retained | What |
+|---|---|---|
+| `health` | yes | [the feed's health message](#messages): status and problems, CPU, memory, receivers, spots a minute by family, the reporters' counts. Every minute, at once when its status changes |
+| `rbn_watch` | yes | with `RBN_WATCH`: RBN Watch's live view, below. Every minute |
+| `status` | yes | UberSDR's: `online` while these come, `offline` five minutes after they stop |
+
+It sends no spots: UberSDR already publishes the skimmer's spots on its own
+topics (`cw_spots/BAND`, `digital_modes/MODE/BAND`), read from the feed. With
+Home Assistant discovery on in UberSDR, the figures are entities of their own
+device under the receiver's: the status, RBN Watch's bust rates (15 min, 1 h,
+24 h) and busts, RBN's network and median node bust rates, our rank, the last
+bust and whether RBN's feed is connected, spots a minute, the spots sent to
+RBN and PSK Reporter (when they are on), receivers, CPU, memory, uptime and
+version.
+
+**To your own broker** (`MQTT`, `--mqtt`): everything, under
+`ubersdr-skimmer/CALLSIGN/` (`MQTT_TOPIC`):
+
+| Topic | Retained | What |
+|---|---|---|
+| `status` | yes | `online`; `offline` as the skimmer stops, or as the broker's Last Will when it goes without saying |
+| `health`, `rbn_watch` | yes | as above |
+| `spots/MODE/BAND` | no | every spot of every mode (`CW`, `RTTY`, `JTTY`, `FT8`, `FT4`, `FT2`, `WSPR-2`, `FST4W-120`..., `JS8-Normal`...; band `20`, `40`...), in [the feed's form](#messages) with `"spotted"`: `true` if it went out (telnet, RBN, PSK Reporter), `false` if held back as a repeat (by `--spot-hold` for CW, RTTY and JTTY; once a call, band and mode in 2 minutes for FT, WSPR and JS8) |
+
+With `MQTT_HA`, the same Home Assistant entities, by MQTT discovery on that
+broker. Run as a program, the settings page's Reporting step (the setup
+wizard's, and the Config tab's Edit) has the broker's fields, off until a
+broker is given, and a Test button that connects and logs in, saying what
+the broker answered. A broker away is tried again, 2 seconds doubling to a minute, for as
+long as it takes; spots meanwhile wait (the newest 4,096). The web page's
+Resources tab shows the connection: connected or why not, messages and spots
+sent, waiting and dropped.
+
+`rbn_watch`, the RBN Watch tab's live view (never its Whole days page):
+
+```json
+{"t":1795283378,"spotter":"MM9PSY","software":"UberSDR Skimmer","connected":true,"since":1795280112,
+ "judged_to":1795281600,"per_min":1114.8,"nodes":217,
+ "windows":{"15m":{"s":900,"spots":72,"busts":1,"bust_pct":1.389,"rank":69,"rated":98,"rank_spots":12,"min_spots":20,
+                   "rbn_spots":5574,"rbn_busts":54,"rbn_bust_pct":0.969,"median_pct":0.0,"nodes":217},
+            "1h":{...},"24h":{...}},
+ "kinds":{"merged":1},
+ "last_bust":{"t":1795283227,"khz":3536.9,"call":"EA5M","real":"EA5OH","skimmers":23,"spots":1,"kind":"merged",
+              "final":false,"snr_db":8,"wpm":38,"others_wpm":38},
+ "busts":[...]}
+```
+
+| Field | |
+|---|---|
+| `windows` | `15m`, `1h`, `24h`: our CW spots on RBN and how many were busted, the rate in %; our `rank` among the `rated` nodes with `min_spots` or more (lowest rate first; null with too few of ours); RBN's spots, busts and rate, its median node's rate (null with too few nodes) |
+| `kinds` | how our busts in 24 hours were misspelt (as the tab names them) |
+| `busts`, `last_bust` | our newest ten busts: the call, the `real` one, its skimmers, our spots of it, the kind, whether the verdict is `final` (half an hour after the spot), our SNR and speed, and the other skimmers' speed for the real call |
+
+`bust_pct`, `rank`, `median_pct` and `rbn_bust_pct` are null, not 0, when there
+is nothing to rate.
 
 ## Helper scripts
 
@@ -1407,14 +1477,16 @@ spots:
   --ft8 [BANDS]      decode FT8 on these bands' FT8 dials (20,40 or all;
                      default none) with WSJT-X's FT8 decoder built in (or
                      the jt9 program, --ft8-jt9); each must be
-                     among --bands, or no start. With no list, every band of
-                     --bands with an FT8 dial (one its streams still miss
-                     left out, said). Each band's streams cover its dial and
-                     0-3.2 kHz above it, whatever that costs. Every sender
-                     heard goes to PSK Reporter
-                     (--pskreporter), CQs and roger reports to RBN (--rbn) as
-                     RBN Aggregator sends WSJT-X's, and each band's latest
-                     cycle to the web page's FT8 tab
+                     among --bands, or no start; one beyond the receiver's
+                     range is left out, said, as --bands leaves it out (6 m
+                     on a receiver that stops at 30 MHz). With no list,
+                     every band of --bands with an FT8 dial (one its
+                     streams still miss left out, said). Each band's
+                     streams cover its dial and 0-3.2 kHz above it,
+                     whatever that costs. Every sender heard goes to PSK
+                     Reporter (--pskreporter), CQs and roger reports to
+                     RBN (--rbn) as RBN Aggregator sends WSJT-X's, and each
+                     band's latest cycle to the web page's FT8 tab
   --ft8-depth D      the decoding depth: fast, normal (default) or deep
   --ft8-threads N    FT8 decodes at once, every dial's together (1-64;
                      default half the cores, at least 2, at most 4); a cycle
@@ -1665,6 +1737,53 @@ output:
                      where the packets go (default report.pskreporter.info:4739;
                      port 14739 there analyses them instead, at
                      pskreporter.info/cgi-bin/psk-analysis.pl)
+  --spot-stream URL  where the spot stream goes (default
+                     https://cluster.ubersdr.org): every validated spot of
+                     every mode, as soon as it is heard (CW, RTTY and JTTY
+                     one at a time; FT, WSPR and JS8 a band's decode cycle at
+                     a time), never held back as a repeat, and the station's
+                     setup (software, radio, bands and modes, decoder
+                     choices: nothing personal, no figures). Over UDP,
+                     compressed and signed: when this skimmer first
+                     registers, the server gives it a key and the UDP host
+                     and port to send to, both kept in spot-stream.key
+                     beside the config file. A server away
+                     is tried again, 2 s doubling to a minute, quietly. On by
+                     default; live input only
+  --no-spot-stream   send no spot stream
+  --mqtt URL         publish to an MQTT broker (mqtt://HOST[:PORT], 1883 by
+                     default; mqtts://HOST[:PORT] for TLS, 8883): every spot
+                     of every mode on PREFIX/spots/MODE/BAND (as the web
+                     page's /api/feed has it, with "spotted": whether it went
+                     out or was held as a repeat), the skimmer's health
+                     (/api/feed's) on PREFIX/health and, with --rbn-watch,
+                     RBN Watch's live bust figures on PREFIX/rbn_watch, both
+                     retained, every minute (health at once when its status
+                     changes); PREFIX/status says online, or offline (the
+                     connection's Last Will). A broker away is tried again,
+                     2 s doubling to a minute, for as long as it takes. Needs
+                     the web page (its figures). Off by default
+  --mqtt-user USER   the broker's user name
+  --mqtt-password PASS
+                     and password
+  --mqtt-topic PREFIX
+                     the topics' prefix (default ubersdr-skimmer/CALL)
+  --mqtt-ha [PREFIX] also Home Assistant MQTT discovery, under PREFIX (default
+                     homeassistant): the status, RBN Watch's bust rates and
+                     counts, spots a minute, spots sent to RBN, PSK Reporter
+                     and the spot stream, receivers, CPU, memory
+  --mqtt-insecure    take the broker's TLS certificate unchecked (one of its
+                     own making)
+  --mqtt-ubersdr [URL]
+                     as an UberSDR addon, publish through the receiver's own
+                     MQTT connection, by its addon ingest port (URL, default
+                     port 6926 on --url's host; nothing to configure there):
+                     the health and, with --rbn-watch, RBN Watch's live bust
+                     figures, each minute, with their Home Assistant entities
+                     when the receiver has discovery on. Never a spot: the
+                     receiver publishes the skimmer's spots itself (from
+                     /api/feed). Dormant while the receiver's MQTT is off.
+                     Needs the web page. Off by default (on in Docker)
   --qrz-user USER --qrz-password PASS
                      look up each call spotted at QRZ.com (an XML Data
                      subscription): its position for the page's map, and

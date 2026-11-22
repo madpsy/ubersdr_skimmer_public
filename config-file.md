@@ -130,7 +130,7 @@ the command line.
   "js8":            { ... },
   "wspr":           { ... },   // WSPR and FST4W
   "programs":       { ... },   // the WSJT-X programs, when they decode instead
-  "reporting":      { "rbn": { ... }, "pskreporter": { ... }, "wsprnet": { ... }, "wsjtx_out": { ... } },
+  "reporting":      { "rbn": { ... }, "pskreporter": { ... }, "spot_stream": { ... }, "wsprnet": { ... }, "wsjtx_out": { ... } },
   "qrz":            { ... },
   "telnet":         { ... },
   "web":            { ... },
@@ -451,6 +451,13 @@ names (`W2`, `W15`, `F2`, `F5`, `F15`, `F30`) are taken too. Band names are
 | `antenna` | string | `--pskreporter-antenna` | |
 | `server` | string | `--pskreporter-server` | `host:port` |
 
+### `reporting.spot_stream`
+
+| Key | Type | Option | |
+|---|---|---|---|
+| `enabled` | bool | `--no-spot-stream` | every validated spot, as heard, to the spot stream's server (default true; live input only) |
+| `server` | string | `--spot-stream` | the server's URL (default `https://cluster.ubersdr.org`) |
+
 ### `reporting.wsprnet`
 
 | Key | Type | Option | |
@@ -466,6 +473,26 @@ names (`W2`, `W15`, `F2`, `F5`, `F15`, `F30`) are taken too. Band names are
 | `to` | string | `--wsjtx-out` | `host:port` (or `[ipv6]:port`, a multicast group) |
 | `id` | string | `--wsjtx-out-id` | |
 | `ttl` | int 1-255 | `--wsjtx-out-ttl` | |
+
+### `reporting.mqtt`
+
+MQTT: to a broker of your own (every spot and the figures), and through an
+UberSDR receiver whose addon the skimmer is (the figures alone). Either needs
+the web page (`web.port` not 0).
+
+| Key | Type | Option | |
+|---|---|---|---|
+| `broker` | string | `--mqtt` | `mqtt://host[:port]` or `mqtts://host[:port]`; none: off |
+| `user` | string | `--mqtt-user` | |
+| `password` | string | `--mqtt-password` | |
+| `topic` | string | `--mqtt-topic` | the topics' prefix (default `ubersdr-skimmer/CALL`) |
+| `home_assistant` | bool or string | `--mqtt-ha [PREFIX]` | `true`: Home Assistant discovery under `homeassistant`; a string: under that prefix |
+| `insecure` | bool | `--mqtt-insecure` | the broker's TLS certificate not checked |
+| `ubersdr` | bool or string | `--mqtt-ubersdr [URL]` | `true`: the health and RBN Watch's figures (never spots) through UberSDR's addon ingest port, port 6926 on `source.ubersdr.url`'s host; a string: that port's URL |
+
+```json
+"reporting": {"mqtt": {"broker": "mqtts://broker.lan", "user": "skimmer", "password": "...", "home_assistant": true}}
+```
 
 ### `qrz`
 
