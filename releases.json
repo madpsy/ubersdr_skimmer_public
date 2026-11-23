@@ -1,6 +1,16 @@
 {
  "releases": [
   {
+   "version": "v2026.11.23",
+   "date": "2026-11-23",
+   "new": [
+    "spots are now sent to https://cluster.ubersdr.org/ as they are heard; to turn this off, set SPOT_STREAM: \"false\" in docker-compose (--no-spot-stream on the command line)"
+   ],
+   "changed": [
+    "extra decoding information sent to the cluster to reduce busts"
+   ]
+  },
+  {
    "version": "v2026.11.22",
    "date": "2026-11-22",
    "new": [
