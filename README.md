@@ -1390,26 +1390,13 @@ spots:
                      The streams still run for everything else: RTTY, JTTY,
                      FT, WSPR and JS8, the spectrum, the RF tab and
                      listening. Saves the CPU CW reading takes
-  --cw-engine E      how CW's calls are read from each signal: text (the
-                     default) or bayesian. text reads calls from the decoded
-                     text: a call is CQ if a CQ, TEST or QRZ is beside it with
-                     no other call between (an over ends after 14 dits
-                     unkeyed), DE if a DE is just before it, else blank, each
-                     spotted once read often enough (--validation). bayesian
-                     labels every decoded letter as part of a call, a CQ, a DE,
-                     an exchange or other text by a word model, counts each
-                     call's sightings, checks it against patt3ch.lst (and
-                     --rbn-bad-calls), keeps one call for each signal and spots
-                     it when it changes: CQ if a CQ is tied to it, DE if a DE
-                     is, else blank; a call once in 10 minutes within 500 Hz
-                     unless it turns CQ
   --cw-nn on|off     the CW neural network, on by default: each track's audio
                      read again by a small network built into the program,
                      its text one more reading of the track beside the
                      decoder's own two, so a call is spotted from whichever
                      reads it best (weak and fading signals, hand keying).
-                     About a thousandth of a core for each signal read. With
-                     --cw-engine text; off: the decoder's own readings only
+                     About a thousandth of a core for each signal read. off:
+                     the decoder's own readings only
   --skim-digital     skim the digital modes' windows too (FT8, FT4, FT2, WSPR
                      and JS8: each dial frequency and 3 kHz above it), which
                      are left out by default: a CW decoder reads only busts
@@ -1438,17 +1425,6 @@ spots:
   --max-rtty N       RTTY signals each band decodes at once, 1-1000 (default
                      100), shared by its streams; past it, new ones go
                      undecoded (logged, and the web page's RTTY bar full)
-  --rtty-engine E    how RTTY's calls are read from each signal: bayesian (the
-                     default) or text. bayesian labels every character as part
-                     of a call, a CQ, a DE, an exchange or noise from its bits'
-                     probabilities, merges each call's sightings bit by bit,
-                     weighs them by MASTER.SCP and patt3ch.lst, and keeps one
-                     call for each signal, spotted when it changes: CQ if a CQ
-                     is tied to it, DE if a DE is, else blank. text reads calls
-                     from the decoded text, over by over (rtty-contests.txt's
-                     CQ words), and keeps one call for each signal too: the one
-                     read calling CQ, unless another is read more and the CQ's
-                     has gone unseen for 240 characters
   --tens-hz          RTTY spots' frequencies to 10 Hz (14083.45), as RTTY
                      Skimmer Server's TensHz: on the RTTY and all-modes
                      telnet ports and to RBN, which keeps the digit. By

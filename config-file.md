@@ -295,7 +295,6 @@ otherwise (the command line's "before any radio").
 | Key | Type | Option | |
 |---|---|---|---|
 | `enabled` | bool | `--no-cw` when `false` | skim CW (default true) |
-| `engine` | enum `bayesian` `text` | `--cw-engine` | how each signal's call is read (default text) |
 | `nn` | bool | `--cw-nn` `on`/`off` | the CW neural network: each track read again by a network built in (default true) |
 | `all_bands` | bool | `--all-bands` | skim the whole window, CW sub-band or not |
 | `skim_digital` | bool | `--skim-digital` | skim the digital modes' windows too |
@@ -326,7 +325,6 @@ otherwise (the command line's "before any radio").
 | `enabled` | bool | `--no-rtty` when `false` | decode and spot RTTY (default true) |
 | `filter` | bool | `--no-rtty-filter` when `false` | keep CW tracks off FSK (default true; RTTY needs it) |
 | `max_channels` | int 1-1000 | `--max-rtty` | RTTY signals a band decodes at once (default 100) |
-| `engine` | enum `bayesian` `text` | `--rtty-engine` | how each signal's call is read (default bayesian) |
 | `tens_hz` | bool | `--tens-hz` | spot frequencies to 10 Hz, as RTTY Skimmer Server's TensHz (default false: 100 Hz) |
 | `contests` | path | `--rtty-contests` | the contests' CQ words and reports |
 
